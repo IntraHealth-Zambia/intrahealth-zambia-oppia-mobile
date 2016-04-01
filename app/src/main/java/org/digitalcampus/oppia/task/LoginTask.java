@@ -26,7 +26,7 @@ import android.util.Log;
 import com.splunk.mint.Mint;
 
 import org.apache.http.client.ClientProtocolException;
-import org.digitalcampus.mobile.learning.R;
+import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.exception.UserNotFoundException;

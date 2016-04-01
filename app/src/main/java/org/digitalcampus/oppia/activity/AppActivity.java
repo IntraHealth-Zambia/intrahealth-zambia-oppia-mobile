@@ -30,7 +30,7 @@ import android.view.MenuItem;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import org.digitalcampus.mobile.learning.R;
+import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.application.ScheduleReminders;
 import org.digitalcampus.oppia.application.SessionManager;

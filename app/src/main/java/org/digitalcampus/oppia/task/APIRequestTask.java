@@ -20,7 +20,7 @@ package org.digitalcampus.oppia.task;
 import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
-import org.digitalcampus.mobile.learning.R;
+import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.SessionManager;
 import org.digitalcampus.oppia.exception.UserNotFoundException;

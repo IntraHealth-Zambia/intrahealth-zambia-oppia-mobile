@@ -27,7 +27,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 
-import org.digitalcampus.mobile.learning.R;
+import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.activity.CourseIndexActivity;
 import org.digitalcampus.oppia.adapter.ScorecardListAdapter;
 import org.digitalcampus.oppia.application.DbHelper;

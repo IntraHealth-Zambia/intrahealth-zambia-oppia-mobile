@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
-import org.digitalcampus.mobile.learning.R;
+import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.activity.ScorecardActivity;
 import org.digitalcampus.oppia.application.DbHelper;
@@ -53,7 +53,7 @@ public class UIUtils {
 	
 	 /**
      * Displays the users points and badges scores in the app header
-     * @param act
+     * @param ctx
      */
 	public static void showUserData(Menu menu, final Context ctx, final Course courseInContext) {
 		MenuItem pointsItem = menu.findItem(R.id.points);
