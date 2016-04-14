@@ -11,7 +11,7 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "org.digitalcampus.mobile.learning"
+        applicationId "org.intrahealth.zambia.oppia"
         minSdkVersion 14
         targetSdkVersion 23
     }
