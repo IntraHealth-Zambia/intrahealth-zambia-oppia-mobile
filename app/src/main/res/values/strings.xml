@@ -27,7 +27,7 @@
     <string name="service_tracker">OppiaMobile Tracker Service</string>
     
     <string name="fragment_welcome_title">Welcome to Uni of Zambia Mobile Learning</string>
-    <string name="fragment_welcome_desc">Uni of Zambia Mobile Learning platform is designed for delivering learning content, video and quizzes offline on you Android device.</string>
+    <string name="fragment_welcome_desc">Uni of Zambia Mobile Learning is designed for delivering learning content, video and quizzes offline on your Android device.</string>
     <string name="fragment_welcome_login_info">To get started, you will need to register or login.</string>
     <string name="fragment_welcome_privacy">We take your privacy seriously, <a href="http://digital-campus.org/privacy/">find out more about Digital Campus\'s privacy policy</a></string>
     
