@@ -38,7 +38,7 @@ public class MobileLearning extends Application {
 
 	public static final String TAG = MobileLearning.class.getSimpleName();
 	
-	public static final int APP_LOGO = R.drawable.dc_logo;
+	public static final int APP_LOGO = R.drawable.unzalogo;
 	
 	public static final String COURSE_XML = "module.xml";
 	public static final String COURSE_SCHEDULE_XML = "schedule.xml";
@@ -68,7 +68,7 @@ public class MobileLearning extends Application {
     public static final boolean ADMIN_PROTECT_COURSE_UPDATE = true;
 
 	// general other settings
-	public static final String MINT_API_KEY = "26c9c657";
+	public static final String MINT_API_KEY = "efb6f506";
 	public static final int DOWNLOAD_COURSES_DISPLAY = 1; //this no of courses must be displayed for the 'download more courses' option to disappear
 	public static final int PASSWORD_MIN_LENGTH = 6;
 	public static final int PAGE_READ_TIME = 3;
