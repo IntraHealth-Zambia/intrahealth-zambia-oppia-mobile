@@ -26,9 +26,9 @@
     
     <string name="service_tracker">OppiaMobile Tracker Service</string>
     
-    <string name="fragment_welcome_title">Welcome to OppiaMobile</string>
-    <string name="fragment_welcome_desc">OppiaMobile is a mobile learning platform for delivering learning content, video and quizzes.\n\n\'Oppia\' means \'to learn\' in Finnish</string>
-    <string name="fragment_welcome_login_info">To get started with OppiaMobile, you will need to register or login.</string>
+    <string name="fragment_welcome_title">Welcome to Uni of Zambia Mobile Learning</string>
+    <string name="fragment_welcome_desc">Uni of Zambia Mobile Learning platform is designed for delivering learning content, video and quizzes offline on you Android device.</string>
+    <string name="fragment_welcome_login_info">To get started, you will need to register or login.</string>
     <string name="fragment_welcome_privacy">We take your privacy seriously, <a href="http://digital-campus.org/privacy/">find out more about Digital Campus\'s privacy policy</a></string>
     
     <string name="tab_title_about">About</string>
@@ -56,7 +56,7 @@
     <string name="title_prefs">Settings</string>
     <string name="title_scorecard">Scorecard</string>
     <string name="title_tag_select_activity">Select Category</string>
-    <string name="title_welcome">OppiaMobile</string>
+    <string name="title_welcome">Uni of Zambia Mobile Learning</string>
     <string name="version">Version: %1$s</string>
     <string name="title_download_media">Download Media</string>
     
