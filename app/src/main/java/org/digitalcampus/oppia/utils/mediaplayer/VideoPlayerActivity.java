@@ -31,7 +31,11 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
 
+
 import org.intrahealth.zambia.oppia.R;
+
+import com.splunk.mint.Mint;
+
 import org.digitalcampus.oppia.activity.AppActivity;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.application.Tracker;
@@ -101,6 +105,8 @@ public class VideoPlayerActivity extends AppActivity implements SurfaceHolder.Ca
     @Override
     protected void onStop(){
     	saveTracker();
+        controller.setMediaPlayer(null);
+        if (player != null ) player.release();
     	super.onStop();
     }
     
@@ -212,7 +218,29 @@ public class VideoPlayerActivity extends AppActivity implements SurfaceHolder.Ca
 
     public void surfaceCreated(SurfaceHolder holder) {
     	player.setDisplay(holder);
-        player.prepareAsync();
+        player.stop();
+        player.reset();
+        try{
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            player.setDataSource(this, Uri.parse(Storage.getMediaPath(this) + mediaFileName));
+            player.setOnPreparedListener(this);
+            player.prepareAsync();
+
+        } catch (IOException e) {
+            //If the source is not available, close the activity
+            e.printStackTrace();
+            Mint.logException(e);
+            player.release();
+            this.finish();
+
+        } catch (IllegalStateException e){
+            //If the player state was illegal, try to reset it again
+            player.reset();
+            player.prepareAsync();
+            e.printStackTrace();
+            Mint.logException(e);
+        }
+
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {

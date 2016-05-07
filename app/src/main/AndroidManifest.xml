@@ -2,6 +2,7 @@
     package="org.intrahealth.zambia.oppia"
     xmlns:tools="http://schemas.android.com/tools"
     android:versionCode="58"
+    android:versionCode="59"
     android:versionName="@string/version_name">
 
     <uses-sdk
