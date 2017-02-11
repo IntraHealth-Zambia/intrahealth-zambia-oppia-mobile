@@ -26,7 +26,7 @@ import org.digitalcampus.oppia.adapter.TagListAdapter;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.listener.APIRequestListener;
 import org.digitalcampus.oppia.model.Tag;
-import org.digitalcampus.oppia.task.APIRequestTask;
+import org.digitalcampus.oppia.task.APIUserRequestTask;
 import org.digitalcampus.oppia.task.Payload;
 import org.digitalcampus.oppia.utils.UIUtils;
 import org.json.JSONException;
@@ -37,6 +37,7 @@ import com.splunk.mint.Mint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -131,7 +132,7 @@ public class TagSelectActivity extends AppActivity implements APIRequestListener
 		pDialog.setCancelable(true);
 		pDialog.show();
 
-		APIRequestTask task = new APIRequestTask(this);
+		APIUserRequestTask task = new APIUserRequestTask(this);
 		Payload p = new Payload(MobileLearning.SERVER_TAG_PATH);
 		task.setAPIRequestListener(this);
 		task.execute(p);
@@ -195,7 +196,8 @@ public class TagSelectActivity extends AppActivity implements APIRequestListener
 				UIUtils.showAlert(this, R.string.loading, R.string.error_connection, finishActivity);
 			}
 		} else {
-			UIUtils.showAlert(this, R.string.error, R.string.error_connection_required, finishActivity);
+            String errorMsg = response.getResultResponse();
+			UIUtils.showAlert(this, R.string.error, errorMsg, finishActivity);
 		}
 
 	}

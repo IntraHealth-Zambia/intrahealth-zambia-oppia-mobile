@@ -43,6 +43,7 @@ import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.Course;
 import org.digitalcampus.oppia.model.QuizAttempt;
 import org.digitalcampus.oppia.model.QuizFeedback;
+import org.digitalcampus.oppia.model.QuizStats;
 import org.digitalcampus.oppia.utils.resources.ExternalResourceOpener;
 import org.digitalcampus.oppia.utils.storage.FileUtils;
 import org.digitalcampus.oppia.utils.MetaDataUtils;
@@ -85,6 +86,7 @@ import android.widget.Toast;
 public class QuizWidget extends WidgetFactory {
 
 	public static final String TAG = QuizWidget.class.getSimpleName();
+    private static final int QUIZ_AVAILABLE = -1;
 	private Quiz quiz;
 	private QuestionWidget qw;
 	public Button prevBtn;
@@ -159,50 +161,72 @@ public class QuizWidget extends WidgetFactory {
     public void loadQuiz(){
         if (this.quiz == null) {
             this.quiz = new Quiz();
-            this.quiz.load(quizContent,prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()));
+            this.quiz.load(quizContent,prefs.getString(
+                    PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()));
         }
+
         if (this.isOnResultsPage) {
-            this.showResults();
-        } else {
-            // determine availability
-            if (this.quiz.getAvailability() == Quiz.AVAILABILITY_ALWAYS){
-                this.showQuestion();
-            } else if (this.quiz.getAvailability() == Quiz.AVAILABILITY_SECTION){
+            showResults();
+            return;
+        }
 
-                // check to see if all previous section activities have been completed
-
-                DbHelper db = DbHelper.getInstance(getActivity());
-                long userId = db.getUserId(SessionManager.getUsername(getActivity()));
-                boolean completed = db.isPreviousSectionActivitiesCompleted(course, activity, userId);
-
-                if (completed){
-                    this.showQuestion();
-                } else {
-                    ViewGroup vg = (ViewGroup) getView().findViewById(activity.getActId());
+        int result = checkQuizAvailability();
+        if (result == QUIZ_AVAILABLE){
+            this.showQuestion();
+        }
+        else{
+            View container = getView();
+            if (container != null){
+                ViewGroup vg = (ViewGroup) container.findViewById(activity.getActId());
+                if (vg!=null){
                     vg.removeAllViews();
                     vg.addView(View.inflate(getView().getContext(), R.layout.widget_quiz_unavailable, null));
 
                     TextView tv = (TextView) getView().findViewById(R.id.quiz_unavailable);
-                    tv.setText(R.string.widget_quiz_unavailable_section);
-                }
-            } else if (this.quiz.getAvailability() == Quiz.AVAILABILITY_COURSE){
-                // check to see if all previous course activities have been completed
-                DbHelper db = DbHelper.getInstance(getActivity());
-                long userId = db.getUserId(SessionManager.getUsername(getActivity()));
-                boolean completed = db.isPreviousCourseActivitiesCompleted(course, activity, userId);
-
-                if (completed){
-                    this.showQuestion();
-                } else {
-                    ViewGroup vg = (ViewGroup) getView().findViewById(activity.getActId());
-                    vg.removeAllViews();
-                    vg.addView(View.inflate(getView().getContext(), R.layout.widget_quiz_unavailable, null));
-
-                    TextView tv = (TextView) getView().findViewById(R.id.quiz_unavailable);
-                    tv.setText(R.string.widget_quiz_unavailable_course);
+                    tv.setText(result);
                 }
             }
         }
+    }
+
+    private int checkQuizAvailability(){
+
+        DbHelper db = null;
+        if (this.quiz.limitAttempts()){
+            //Check if the user has attempted the quiz the max allowed
+            db = DbHelper.getInstance(getActivity());
+            long userId = db.getUserId(SessionManager.getUsername(getActivity()));
+            QuizStats qs = db.getQuizAttempt(this.activity.getDigest(), userId);
+            if (qs.getNumAttempts() > quiz.getMaxAttempts()){
+                return R.string.widget_quiz_unavailable_attempts;
+            }
+        }
+
+        // determine availability
+        if (this.quiz.getAvailability() == Quiz.AVAILABILITY_ALWAYS){
+            return QUIZ_AVAILABLE;
+
+        } else if (this.quiz.getAvailability() == Quiz.AVAILABILITY_SECTION){
+            // check to see if all previous section activities have been completed
+            if (db == null) db = DbHelper.getInstance(getActivity());
+            long userId = db.getUserId(SessionManager.getUsername(getActivity()));
+
+            if( db.isPreviousSectionActivitiesCompleted(course, activity, userId) )
+                return QUIZ_AVAILABLE;
+            else
+                return R.string.widget_quiz_unavailable_section;
+
+        } else if (this.quiz.getAvailability() == Quiz.AVAILABILITY_COURSE){
+            // check to see if all previous course activities have been completed
+            if (db == null) db = DbHelper.getInstance(getActivity());
+            long userId = db.getUserId(SessionManager.getUsername(getActivity()));
+            if (db.isPreviousCourseActivitiesCompleted(course, activity, userId))
+                return QUIZ_AVAILABLE;
+            else
+                return R.string.widget_quiz_unavailable_course;
+        }
+        //If none of the conditions apply, set it as available
+        return QUIZ_AVAILABLE;
     }
 
 	public void showQuestion() {
@@ -216,7 +240,7 @@ public class QuizWidget extends WidgetFactory {
 		}
 		qText.setVisibility(View.VISIBLE);
 		// convert in case has any html special chars
-		qText.setText(Html.fromHtml(q.getTitle(prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()))).toString());
+		qText.setText(Html.fromHtml(q.getTitle(prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()))));
 
 		if (q.getProp("image") == null) {
 			questionImage.setVisibility(View.GONE);
@@ -413,7 +437,7 @@ public class QuizWidget extends WidgetFactory {
 		db.insertQuizAttempt(qa);
 		
 		//Check if quiz results layout is already loaded
-        View quizResultsLayout = getView().findViewById(R.id.widget_quiz_results);
+        View quizResultsLayout = getView()==null ? null : getView().findViewById(R.id.widget_quiz_results);
         if (quizResultsLayout == null){
             // load new layout
             View C = getView().findViewById(R.id.quiz_progress);
@@ -456,7 +480,16 @@ public class QuizWidget extends WidgetFactory {
 		
 		// Show restart or continue button
 		Button restartBtn = (Button) getView().findViewById(R.id.quiz_results_button);
-		
+
+        int quizAvailability = checkQuizAvailability();
+        boolean quizAvailable = quizAvailability == QUIZ_AVAILABLE;
+
+        if (!quizAvailable){
+            TextView availabilityMsg = (TextView) getView().findViewById(R.id.quiz_availability_message);
+            availabilityMsg.setText(quizAvailability);
+            availabilityMsg.setVisibility(View.VISIBLE);
+        }
+
 		if (this.isBaseline) {
 			restartBtn.setText(super.getActivity().getString(R.string.widget_quiz_baseline_goto_course));
 			restartBtn.setOnClickListener(new View.OnClickListener() {
@@ -464,7 +497,14 @@ public class QuizWidget extends WidgetFactory {
 					QuizWidget.this.getActivity().finish();
 				}
 			});
-		} else {
+		} else if (this.getActivityCompleted() || !quizAvailable){
+            restartBtn.setText(super.getActivity().getString(R.string.widget_quiz_continue));
+            restartBtn.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    QuizWidget.this.getActivity().finish();
+                }
+            });
+        } else{
 			restartBtn.setText(super.getActivity().getString(R.string.widget_quiz_results_restart));
 			restartBtn.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
@@ -621,27 +661,7 @@ public class QuizWidget extends WidgetFactory {
 		}
 
 		public void onClick(View v) {
-			// check video file exists
-			boolean exists = Storage.mediaFileExists(QuizWidget.super.getActivity(), mediaFileName);
-			if (!exists) {
-				Toast.makeText(QuizWidget.super.getActivity(), QuizWidget.super.getActivity().getString(R.string.error_media_not_found, mediaFileName), Toast.LENGTH_LONG).show();
-			    return;
-            }
-
-			String mimeType = FileUtils.getMimeType(Storage.getMediaPath(QuizWidget.super.getActivity()) + mediaFileName);
-			if (!FileUtils.supportedMediafileType(mimeType)) {
-				Toast.makeText(QuizWidget.super.getActivity(), QuizWidget.super.getActivity().getString(R.string.error_media_unsupported, mediaFileName),
-						Toast.LENGTH_LONG).show();
-                return;
-			}
-			
-			Intent intent = new Intent(QuizWidget.super.getActivity(), VideoPlayerActivity.class);
-			Bundle tb = new Bundle();
-			tb.putSerializable(VideoPlayerActivity.MEDIA_TAG, mediaFileName);
-			tb.putSerializable(Activity.TAG, activity);
-			tb.putSerializable(Course.TAG, course);
-			intent.putExtras(tb);
-			startActivity(intent);
+            QuizWidget.super.startMediaPlayerWithFile(mediaFileName);
 		}
 		
 	}

@@ -18,12 +18,11 @@
 package org.digitalcampus.oppia.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
 
 import com.splunk.mint.Mint;
 
-import org.apache.http.client.ClientProtocolException;
 import org.intrahealth.zambia.oppia.R;
+import org.digitalcampus.oppia.api.ApiEndpoint;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.listener.SubmitListener;
 import org.digitalcampus.oppia.model.User;
@@ -39,18 +38,16 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class ResetTask extends AsyncTask<Payload, Object, Payload> {
+public class ResetTask extends APIRequestTask<Payload, Object, Payload> {
 
 	public static final String TAG = ResetTask.class.getSimpleName();
 
-	private Context ctx;
 	private SubmitListener mStateListener;
 
-	public ResetTask(Context ctx) {
-		this.ctx = ctx;
-	}
+    public ResetTask(Context ctx) { super(ctx); }
+    public ResetTask(Context ctx, ApiEndpoint api) { super(ctx, api); }
 
-	@Override
+    @Override
 	protected Payload doInBackground(Payload... params) {
 
 		Payload payload = params[0];
@@ -65,26 +62,27 @@ public class ResetTask extends AsyncTask<Payload, Object, Payload> {
 
             OkHttpClient client = HTTPClientUtils.getClient(ctx);
             Request request = new Request.Builder()
-                    .url(HTTPClientUtils.getFullURL(ctx, MobileLearning.RESET_PATH))
+                    .url(apiEndpoint.getFullURL(ctx, MobileLearning.RESET_PATH))
                     .post(RequestBody.create(HTTPClientUtils.MEDIA_TYPE_JSON, json.toString()))
                     .build();
 
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()){
+                new JSONObject(response.body().string()); //Added to check that the response is well formed
                 payload.setResult(true);
                 payload.setResultResponse(ctx.getString(R.string.reset_complete));
             }
             else{
                 payload.setResult(false);
                 if (response.code() == 400){
-                    payload.setResultResponse(response.toString());
+                    payload.setResultResponse(ctx.getString(R.string.error_reset));
                 }
                 else{
                     payload.setResultResponse(ctx.getString(R.string.error_connection));
                 }
             }
 
-		} catch (UnsupportedEncodingException | ClientProtocolException e) {
+		} catch (UnsupportedEncodingException  e) {
 			payload.setResult(false);
 			payload.setResultResponse(ctx.getString(R.string.error_connection));
 		} catch (IOException e) {
@@ -113,4 +111,5 @@ public class ResetTask extends AsyncTask<Payload, Object, Payload> {
 			mStateListener = srl;
 		}
 	}
+
 }

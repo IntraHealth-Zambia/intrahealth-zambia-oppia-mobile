@@ -18,6 +18,7 @@
 package org.digitalcampus.oppia.application;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -145,6 +146,15 @@ public class DbHelper extends SQLiteOpenHelper {
             instance = new DbHelper(ctx.getApplicationContext());
         }
         return instance;
+    }
+
+    public synchronized void resetDatabase(){
+        //Remove the data from all the tables
+        List<String> tables = Arrays.asList(USER_PREFS_TABLE, USER_TABLE, SEARCH_TABLE, QUIZATTEMPTS_TABLE,
+                                            TRACKER_LOG_TABLE, ACTIVITY_TABLE, COURSE_TABLE);
+        for (String tablename : tables){
+            db.delete(tablename, null, null);
+        }
     }
 
 	@Override
@@ -754,9 +764,8 @@ public class DbHelper extends SQLiteOpenHelper {
 		String s1 = QUIZATTEMPTS_C_USERID + "=? AND " + QUIZATTEMPTS_C_ACTIVITY_DIGEST +"=?";
 		String[] args1 = new String[] { String.valueOf(userId), digest };
 		Cursor c1 = db.query(QUIZATTEMPTS_TABLE, null, s1, args1, null, null, null);
-		if (c1.getCount() == 0){
-			return qs;
-		}
+        qs.setNumAttempts(c1.getCount());
+		if (c1.getCount() == 0){ return qs; }
 		c1.moveToFirst();
 		while (c1.isAfterLast() == false) {
 			float userScore = c1.getFloat(c1.getColumnIndex(QUIZATTEMPTS_C_SCORE));
@@ -1203,17 +1212,24 @@ public class DbHelper extends SQLiteOpenHelper {
         c.close();
 
     }
+
 	
 	public Activity getActivityByDigest(String digest){
 		String sql = "SELECT * FROM  "+ ACTIVITY_TABLE + " a " +
 					" WHERE " + ACTIVITY_C_ACTIVITYDIGEST + "='"+ digest + "'";
 		Cursor c = db.rawQuery(sql,null);
+
+        if (c.getCount() <= 0){
+            c.close();
+            return null;
+        }
 		c.moveToFirst();
 		Activity a = new Activity();
-		while (c.isAfterLast() == false) {
-			
+		while (!c.isAfterLast()) {
 			if(c.getString(c.getColumnIndex(ACTIVITY_C_TITLE)) != null){
+                a.setCourseId(c.getLong(c.getColumnIndex(ACTIVITY_C_COURSEID)));
 				a.setDigest(c.getString(c.getColumnIndex(ACTIVITY_C_ACTIVITYDIGEST)));
+                a.setActType(c.getString(c.getColumnIndex(ACTIVITY_C_ACTTYPE)));
 				a.setDbId(c.getInt(c.getColumnIndex(ACTIVITY_C_ID)));
 				a.setTitlesFromJSONString(c.getString(c.getColumnIndex(ACTIVITY_C_TITLE)));
 				a.setSectionId(c.getInt(c.getColumnIndex(ACTIVITY_C_SECTIONID)));
@@ -1230,7 +1246,7 @@ public class DbHelper extends SQLiteOpenHelper {
 		Cursor c = db.rawQuery(sql,null);
 		c.moveToFirst();
 		Activity a = new Activity();
-		while (c.isAfterLast() == false) {
+		while (!c.isAfterLast()) {
 			
 			if(c.getString(c.getColumnIndex(ACTIVITY_C_TITLE)) != null){
 				a.setDigest(c.getString(c.getColumnIndex(ACTIVITY_C_ACTIVITYDIGEST)));
@@ -1394,21 +1410,22 @@ public class DbHelper extends SQLiteOpenHelper {
 	    		
 	    		int digest = c.getColumnIndex("activitydigest");
 	    		Activity activity = this.getActivityByDigest(c.getString(digest));
-	    		result.setActivity(activity);
-				
-	    		int sectionOrderId = activity.getSectionId();
-	    		CourseXMLReader cxr = fetchedXMLCourses.get(courseId);
-				try {
-                    if (cxr == null){
-                        cxr = new CourseXMLReader(course.getCourseXMLLocation(), course.getCourseId(), ctx);
-                        fetchedXMLCourses.put(courseId, cxr);
+                if (activity != null){
+                    result.setActivity(activity);
+                    int sectionOrderId = activity.getSectionId();
+                    CourseXMLReader cxr = fetchedXMLCourses.get(courseId);
+                    try {
+                        if (cxr == null){
+                            cxr = new CourseXMLReader(course.getCourseXMLLocation(), course.getCourseId(), ctx);
+                            fetchedXMLCourses.put(courseId, cxr);
+                        }
+                        result.setSection(cxr.getSection(sectionOrderId));
+                        results.add(result);
+                    } catch (InvalidXMLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-					result.setSection(cxr.getSection(sectionOrderId));
-		    		results.add(result);
-				} catch (InvalidXMLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                }
 	    		c.moveToNext();
 			}
             long ellapsedTime = System.currentTimeMillis() - startTime;
@@ -1554,5 +1571,20 @@ public class DbHelper extends SQLiteOpenHelper {
         c.close();
 
         return prefs;
+    }
+
+    public String getUserPreference(String username, String preferenceKey){
+        String whereClause = USER_PREFS_C_USERNAME + "=? AND " + USER_PREFS_C_PREFKEY + "=? ";
+        String[] args = new String[] { username, preferenceKey };
+
+        String prefValue = null;
+        Cursor c = db.query(USER_PREFS_TABLE, null, whereClause, args, null, null, null);
+        if (c.getCount() > 0){
+            c.moveToFirst();
+            prefValue = c.getString(c.getColumnIndex(USER_PREFS_C_PREFVALUE));
+        }
+
+        c.close();
+        return prefValue;
     }
 }

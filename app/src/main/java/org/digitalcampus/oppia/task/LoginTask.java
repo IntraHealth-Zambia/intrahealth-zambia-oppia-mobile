@@ -18,17 +18,16 @@
 package org.digitalcampus.oppia.task;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.splunk.mint.Mint;
 
-import org.apache.http.client.ClientProtocolException;
 import org.intrahealth.zambia.oppia.R;
+import org.digitalcampus.oppia.api.ApiEndpoint;
+
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
+import org.digitalcampus.oppia.application.SessionManager;
 import org.digitalcampus.oppia.exception.UserNotFoundException;
 import org.digitalcampus.oppia.listener.SubmitListener;
 import org.digitalcampus.oppia.model.User;
@@ -45,34 +44,31 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class LoginTask extends AsyncTask<Payload, Object, Payload> {
+public class LoginTask extends APIRequestTask<Payload, Object, Payload> {
 
 	public static final String TAG = LoginTask.class.getSimpleName();
 
-	private Context ctx;
-	private SharedPreferences prefs;
 	private SubmitListener mStateListener;
-	
-	public LoginTask(Context c) {
-		this.ctx = c;
-		prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-	}
 
-	@Override
+
+    public LoginTask(Context ctx) { super(ctx); }
+    public LoginTask(Context ctx, ApiEndpoint api) { super(ctx, api); }
+
+    @Override
 	protected Payload doInBackground(Payload... params) {
-
-		Payload payload = params[0];
+        Payload payload = params[0];
 		User u = (User) payload.getData().get(0);
 		
 		// firstly try to login locally
 		DbHelper db0 = DbHelper.getInstance(ctx);
 		try {
 			User localUser = db0.getUser(u.getUsername());
-			
+
 			Log.d(TAG,"logged pw: " + localUser.getPasswordEncrypted());
 			Log.d(TAG,"entered pw: " + u.getPasswordEncrypted());
 			
-			if (localUser.getPasswordEncrypted().equals(u.getPasswordEncrypted())){
+			if (SessionManager.isUserApiKeyValid(ctx, u.getUsername()) &&
+                    localUser.getPasswordEncrypted().equals(u.getPasswordEncrypted())){
 				payload.setResult(true);
 				payload.setResultResponse(ctx.getString(R.string.login_complete));
 				return payload;
@@ -91,7 +87,7 @@ public class LoginTask extends AsyncTask<Payload, Object, Payload> {
 
             OkHttpClient client = HTTPClientUtils.getClient(ctx);
             Request request = new Request.Builder()
-                    .url(HTTPClientUtils.getFullURL(ctx, MobileLearning.LOGIN_PATH))
+                    .url(apiEndpoint.getFullURL(ctx, MobileLearning.LOGIN_PATH))
                     .post(RequestBody.create(HTTPClientUtils.MEDIA_TYPE_JSON, json.toString()))
                     .build();
 
@@ -138,12 +134,16 @@ public class LoginTask extends AsyncTask<Payload, Object, Payload> {
                 }
             }
 
-		} catch (UnsupportedEncodingException | ClientProtocolException e) {
+		} catch(javax.net.ssl.SSLHandshakeException e) {
+            e.printStackTrace();
+            payload.setResult(false);
+            payload.setResultResponse(ctx.getString(R.string.error_connection_ssl));
+        }catch (UnsupportedEncodingException e) {
 			payload.setResult(false);
 			payload.setResultResponse(ctx.getString(R.string.error_connection));
 		} catch (IOException e) {
 			payload.setResult(false);
-			payload.setResultResponse(ctx.getString(R.string.error_connection));
+			payload.setResultResponse(ctx.getString(R.string.error_connection_required));
 		} catch (JSONException e) {
 			Mint.logException(e);
 			e.printStackTrace();
@@ -168,4 +168,5 @@ public class LoginTask extends AsyncTask<Payload, Object, Payload> {
             mStateListener = srl;
         }
     }
+
 }

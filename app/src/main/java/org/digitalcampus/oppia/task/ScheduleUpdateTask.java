@@ -18,12 +18,11 @@
 package org.digitalcampus.oppia.task;
 
 import android.content.Context;
-import android.os.AsyncTask;
-
 import com.splunk.mint.Mint;
 
-import org.apache.http.client.ClientProtocolException;
 import org.intrahealth.zambia.oppia.R;
+import org.digitalcampus.oppia.api.ApiEndpoint;
+
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.application.SessionManager;
@@ -46,17 +45,16 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class ScheduleUpdateTask extends AsyncTask<Payload, DownloadProgress, Payload>{
+public class ScheduleUpdateTask extends APIRequestTask<Payload, DownloadProgress, Payload>{
 	
 	public final static String TAG = ScheduleUpdateTask.class.getSimpleName();
-	private Context ctx;
+
 	private UpdateScheduleListener uStateListener;
-	
-	public ScheduleUpdateTask(Context ctx) {
-		this.ctx = ctx;
-	}
-	
-	@Override
+
+    public ScheduleUpdateTask(Context ctx) { super(ctx); }
+    public ScheduleUpdateTask(Context ctx, ApiEndpoint api) { super(ctx, api); }
+
+    @Override
 	protected Payload doInBackground(Payload... params) {
 		Payload payload = params[0];
 		
@@ -73,7 +71,7 @@ public class ScheduleUpdateTask extends AsyncTask<Payload, DownloadProgress, Pay
 
             OkHttpClient client = HTTPClientUtils.getClient(ctx);
             Request request = new Request.Builder()
-                    .url(HTTPClientUtils.getFullURL(ctx, dm.getScheduleURI()))
+                    .url(apiEndpoint.getFullURL(ctx, dm.getScheduleURI()))
                     .addHeader(HTTPClientUtils.HEADER_AUTH,
                             HTTPClientUtils.getAuthHeaderValue(user.getUsername(), user.getApiKey()))
                     .build();
@@ -119,7 +117,7 @@ public class ScheduleUpdateTask extends AsyncTask<Payload, DownloadProgress, Pay
 			e.printStackTrace();
 			payload.setResult(false);
 			payload.setResultResponse(ctx.getString(R.string.error_processing_response));
-		} catch (ClientProtocolException | UserNotFoundException e) {
+		} catch (UserNotFoundException e) {
 			payload.setResult(false);
 			payload.setResultResponse(ctx.getString(R.string.error_connection));
 		} catch (IOException e) {

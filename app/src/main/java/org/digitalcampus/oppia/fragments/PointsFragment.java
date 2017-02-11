@@ -24,7 +24,7 @@ import org.digitalcampus.oppia.adapter.PointsListAdapter;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.listener.APIRequestListener;
 import org.digitalcampus.oppia.model.Points;
-import org.digitalcampus.oppia.task.APIRequestTask;
+import org.digitalcampus.oppia.task.APIUserRequestTask;
 import org.digitalcampus.oppia.task.Payload;
 import org.digitalcampus.oppia.utils.UIUtils;
 import org.json.JSONException;
@@ -41,7 +41,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class PointsFragment extends Fragment implements APIRequestListener {
+public class PointsFragment extends AppFragment implements APIRequestListener {
 
 	public static final String TAG = PointsFragment.class.getSimpleName();
 
@@ -80,7 +80,7 @@ public class PointsFragment extends Fragment implements APIRequestListener {
 	}
 	
 	private void getPoints(){		
-		APIRequestTask task = new APIRequestTask(super.getActivity());
+		APIUserRequestTask task = new APIUserRequestTask(super.getActivity());
 		Payload p = new Payload(MobileLearning.SERVER_POINTS_PATH);
 		task.setAPIRequestListener(this);
 		task.execute(p);
