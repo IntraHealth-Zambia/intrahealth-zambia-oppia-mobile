@@ -1,7 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.intrahealth.zambia.oppia"
     xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="58"
     android:versionCode="59"
     android:versionName="@string/version_name">
 
@@ -23,8 +22,8 @@
 
     <!-- GCM permissions -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <permission android:name="org.digitalcampus.mobile.learning.C2D_MESSAGE" android:protectionLevel="signature" />
-    <uses-permission android:name="org.digitalcampus.mobile.learning.C2D_MESSAGE" />
+    <permission android:name="org.intrahealth.zambia.oppia.C2D_MESSAGE" android:protectionLevel="signature" />
+    <uses-permission android:name="org.intrahealth.zambia.oppia.C2D_MESSAGE" />
 
     <application
         android:icon="@drawable/unzalogo"
