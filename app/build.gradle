@@ -12,7 +12,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "org.intrahealth.zambia.oppia"
+        applicationId "org.digitalcampus.mobile.learning"
         minSdkVersion 14
         targetSdkVersion 23
 
@@ -66,10 +66,10 @@ android {
             resValue "string", "prefServerDefault", runtimeProps['OPPIA_SERVER_DEFAULT']
         }
 
-	debug{
+        debug{
             testCoverageEnabled = true
 
-	}
+        }
 
         release {
             minifyEnabled false
@@ -78,20 +78,9 @@ android {
         }
     }
 
-
-    lintOptions {
-        checkReleaseBuilds false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
-        abortOnError false
-    }
-
-    apply plugin: 'com.google.gms.google-services'
-
     testOptions {
         unitTests.returnDefaultValues = true
     }
-
 }
 
 
@@ -137,5 +126,3 @@ afterEvaluate {
         }
     }
 }
-
-
