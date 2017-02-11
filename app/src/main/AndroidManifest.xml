@@ -153,7 +153,7 @@
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
 
-                <category android:name="org.digitalcampus.mobile.learning"/>
+                <category android:name="org.intrahealth.zambia.oppia"/>
             </intent-filter>
         </receiver>
 

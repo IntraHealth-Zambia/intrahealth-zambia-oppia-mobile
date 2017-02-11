@@ -4,4 +4,5 @@
     <string name="version_name">6.1.1</string>
     <string name="prefServerTimeoutConnectionDefault" translatable="false">60000</string>
     <string name="prefServerTimeoutResponseDefault" translatable="false">60000</string>
+    <string name="prefServerDefault" translatable="false">https://zambia-intrahealth.oppia-mobile.org/</string>
 </resources>

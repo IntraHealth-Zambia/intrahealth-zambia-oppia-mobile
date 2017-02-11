@@ -19,7 +19,6 @@ package org.digitalcampus.oppia.task;
 
 import java.io.IOException;
 
-import org.digitalcampus.mobile.learning.R;
 import org.digitalcampus.oppia.api.ApiEndpoint;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.SessionManager;
@@ -27,6 +26,7 @@ import org.digitalcampus.oppia.exception.UserNotFoundException;
 import org.digitalcampus.oppia.listener.APIRequestListener;
 import org.digitalcampus.oppia.model.User;
 import org.digitalcampus.oppia.utils.HTTPClientUtils;
+import org.intrahealth.zambia.oppia.R;
 
 import android.content.Context;
 import android.util.Log;

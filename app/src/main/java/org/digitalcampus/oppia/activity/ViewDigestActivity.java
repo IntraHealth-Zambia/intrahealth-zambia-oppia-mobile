@@ -13,11 +13,11 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.digitalcampus.mobile.learning.R;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.SessionManager;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.Course;
+import org.intrahealth.zambia.oppia.R;
 
 import java.io.File;
 import java.util.Locale;

@@ -19,12 +19,12 @@ package org.digitalcampus.oppia.widgets;
 
 import java.util.HashMap;
 
-import org.digitalcampus.mobile.learning.R;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.Course;
 import org.digitalcampus.oppia.utils.mediaplayer.VideoPlayerActivity;
 import org.digitalcampus.oppia.utils.storage.FileUtils;
 import org.digitalcampus.oppia.utils.storage.Storage;
+import org.intrahealth.zambia.oppia.R;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
