@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -36,6 +37,9 @@ import org.digitalcampus.oppia.service.DownloadBroadcastReceiver;
 import org.digitalcampus.oppia.service.DownloadService;
 import org.digitalcampus.oppia.utils.ConnectionUtils;
 import org.digitalcampus.oppia.utils.UIUtils;
+import org.digitalcampus.oppia.utils.storage.ExternalStorageStrategy;
+import org.digitalcampus.oppia.utils.storage.FileUtils;
+import org.digitalcampus.oppia.utils.storage.Storage;
 
 import com.androidplot.pie.PieRenderer;
 import com.splunk.mint.Mint;
@@ -48,6 +52,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
@@ -165,6 +170,8 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                     showDownloadMediaMessage();
                 }
 
+                dmla.setEnterOnMultiChoiceMode(true);
+                dmla.notifyDataSetChanged();
 
                 downloadSelected.setText(getString(R.string.missing_media_stop_selected));
                 unselectAll.setText(getString(R.string.missing_media_unselect_all));
@@ -187,7 +194,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                             isSortByCourse = true;
                             item.setTitle(getString(R.string.menu_sort_by_filename));
                         }
-                        invalidateOptionsMenu();
+                        supportInvalidateOptionsMenu();
                         return true;
                     }
                     case R.id.menu_select_all:
@@ -205,6 +212,8 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             public void onDestroyActionMode(ActionMode mode) {
                 mediaSelected.clear();
                 hideDownloadMediaMessage();
+                dmla.setEnterOnMultiChoiceMode(false);
+                dmla.notifyDataSetChanged();
             }
         });
 
@@ -247,7 +256,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         broadcastFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         registerReceiver(receiver, broadcastFilter);
 
-        invalidateOptionsMenu();
+        supportInvalidateOptionsMenu();
 	}
 
     @Override
@@ -302,7 +311,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
                     dmla.sortByCourse();
                     isSortByCourse = true;
                 }
-                invalidateOptionsMenu();
+                supportInvalidateOptionsMenu();
                 return true;
             }
             case R.id.menu_select_all:
@@ -318,26 +327,35 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
     }
 
 	private void downloadViaPC(){
-		String filename = "oppia-media.html";
-		String strData = "<html>";
-		strData += "<head><title>"+this.getString(R.string.download_via_pc_title)+"</title></head>";
-		strData += "<body>";
-		strData += "<h3>"+this.getString(R.string.download_via_pc_title)+"</h3>";
-		strData += "<p>"+this.getString(R.string.download_via_pc_intro)+"</p>";
-		strData += "<ul>";
-		for(Object o: missingMedia){
-			Media m = (Media) o;
-			strData += "<li><a href='"+m.getDownloadUrl()+"'>"+m.getFilename()+"</a></li>";
-		}
-		strData += "</ul>";
-		strData += "</body></html>";
-		strData += "<p>"+this.getString(R.string.download_via_pc_final,"/digitalcampus/media/")+"</p>";
-		
-		File file = new File(Environment.getExternalStorageDirectory(),filename);
-		try {
+
+        if (Storage.getStorageStrategy().getStorageType().equals(PrefsActivity.STORAGE_OPTION_INTERNAL)){
+            UIUtils.showAlert(this, R.string.prefStorageLocation, this.getString(R.string.download_via_pc_extenal_storage));
+            return;
+        }
+        try {
+            String filename = "oppia-media.html";
+            String path = ExternalStorageStrategy.getInternalBasePath(this);
+            InputStream input = this.getAssets().open("templates/download_via_pc.html");
+            String html = FileUtils.readFile(input);
+
+            html = html.replace("##page_title##", getString(R.string.download_via_pc_title));
+            html = html.replace("##app_name##", getString(R.string.app_name));
+            html = html.replace("##primary_color##", "#" + Integer.toHexString(ContextCompat.getColor(this, R.color.highlight_light) & 0x00ffffff));
+            html = html.replace("##secondary_color##", "#" + Integer.toHexString(ContextCompat.getColor(this, R.color.highlight_dark) & 0x00ffffff));
+            html = html.replace("##download_via_pc_title##", getString(R.string.download_via_pc_title));
+            html = html.replace("##download_via_pc_intro##", getString(R.string.download_via_pc_intro));
+            html = html.replace("##download_via_pc_final##", getString(R.string.download_via_pc_final, path));
+
+            String downloadData = "";
+            for(Media m : missingMedia){
+                downloadData += "<li><a href='"+m.getDownloadUrl()+"'>"+m.getFilename()+"</a></li>";
+            }
+            html = html.replace("##download_files##", downloadData);
+
+		    File file = new File(Environment.getExternalStorageDirectory(),filename);
 			FileOutputStream f = new FileOutputStream(file);
 			Writer out = new OutputStreamWriter(new FileOutputStream(file));
-			out.write(strData);
+			out.write(html);
 			out.close();
 			f.close();
 			UIUtils.showAlert(this, R.string.info, this.getString(R.string.download_via_pc_message,filename));
@@ -365,8 +383,6 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         if (mediaFile != null){
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 
-            SparseBooleanArray itemsChecked = mediaList.getCheckedItemPositions();
-            itemsChecked .delete(itemsChecked .keyAt(missingMedia.indexOf(mediaFile)));
             mediaFile.setDownloading(false);
             mediaFile.setProgress(0);
             dmla.notifyDataSetChanged();
@@ -378,14 +394,11 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
         Media mediaFile = findMedia(fileUrl);
         if (mediaFile != null){
             Toast.makeText(this,  this.getString(R.string.download_complete), Toast.LENGTH_LONG).show();
-
-            SparseBooleanArray itemsChecked = mediaList.getCheckedItemPositions();
-            itemsChecked.delete(itemsChecked.keyAt(missingMedia.indexOf(mediaFile)));
             missingMedia.remove(mediaFile);
             dmla.notifyDataSetChanged();
             emptyState.setVisibility((missingMedia.size()==0) ? View.VISIBLE : View.GONE);
             downloadViaPCBtn.setVisibility((missingMedia.size()==0) ? View.GONE : View.VISIBLE);
-            invalidateOptionsMenu();
+            supportInvalidateOptionsMenu();
         }
     }
 

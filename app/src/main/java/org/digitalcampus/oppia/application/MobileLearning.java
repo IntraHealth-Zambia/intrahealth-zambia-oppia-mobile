@@ -21,6 +21,9 @@ import org.intrahealth.zambia.oppia.BuildConfig;
 import org.intrahealth.zambia.oppia.R;
 
 import org.digitalcampus.oppia.activity.PrefsActivity;
+import org.digitalcampus.oppia.di.AppComponent;
+import org.digitalcampus.oppia.di.AppModule;
+import org.digitalcampus.oppia.di.DaggerAppComponent;
 import org.digitalcampus.oppia.task.SubmitQuizAttemptsTask;
 import org.digitalcampus.oppia.task.SubmitTrackerMultipleTask;
 import org.digitalcampus.oppia.utils.storage.Storage;
@@ -112,6 +115,9 @@ public class MobileLearning extends Application {
 	// for tracking if SubmitQuizAttemptsTask is already running
 	public SubmitQuizAttemptsTask omSubmitQuizAttemptsTask = null;
 
+
+	private AppComponent appComponent;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -151,5 +157,18 @@ public class MobileLearning extends Application {
         if (success) Storage.setStorageStrategy(strategy);
         return success;
     }
+
+	public AppComponent getComponent(){
+		if(appComponent == null){
+			appComponent = DaggerAppComponent.builder()
+					.appModule(new AppModule(this))
+					.build();
+		}
+		return appComponent;
+	}
+
+	public void setComponent(AppComponent appComponent){
+		this.appComponent = appComponent;
+	}
 
 }

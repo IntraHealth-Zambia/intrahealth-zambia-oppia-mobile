@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -57,6 +58,7 @@ import org.digitalcampus.oppia.listener.ScanMediaListener;
 import org.digitalcampus.oppia.listener.UpdateActivityListener;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.Course;
+import org.digitalcampus.oppia.model.CoursesRepository;
 import org.digitalcampus.oppia.model.DownloadProgress;
 import org.digitalcampus.oppia.model.Lang;
 import org.digitalcampus.oppia.service.CourseIntallerService;
@@ -72,6 +74,8 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
+import javax.inject.Inject;
+
 public class OppiaMobileActivity
         extends AppActivity
         implements
@@ -83,7 +87,6 @@ public class OppiaMobileActivity
             CourseContextMenuCustom.OnContextMenuListener {
 
 	public static final String TAG = OppiaMobileActivity.class.getSimpleName();
-	private SharedPreferences prefs;
 	private ArrayList<Course> courses;
 	private Course tempCourse;
 	private long userId = 0;
@@ -102,13 +105,17 @@ public class OppiaMobileActivity
     private ProgressDialog progressDialog;
     private InstallerBroadcastReceiver receiver;
 
+    @Inject CoursesRepository coursesRepository;
+    @Inject SharedPreferences prefs;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_main);
 
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        initializeDagger();
+
         PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
         prefs.registerOnSharedPreferenceChangeListener(this);
 
@@ -155,7 +162,7 @@ public class OppiaMobileActivity
         ((TextView) navigationView.getHeaderView(0).findViewById(R.id.drawer_username)).setText(SessionManager.getUsername(this));
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 boolean result = onOptionsItemSelected(menuItem);
                 menuItem.setChecked(false);
                 drawerLayout.closeDrawers();
@@ -181,12 +188,17 @@ public class OppiaMobileActivity
         actionBarDrawerToggle.syncState();
 	}
 
-	@Override
+    private void initializeDagger() {
+        MobileLearning app = (MobileLearning) getApplication();
+        app.getComponent().inject(this);
+    }
+
+    @Override
 	public void onStart() {
 		super.onStart();
 		DbHelper db = DbHelper.getInstance(this);
 		userId = db.getUserId(SessionManager.getUsername(this));
-		displayCourses(userId);
+		displayCourses();
 	}
 
 	@Override
@@ -207,11 +219,9 @@ public class OppiaMobileActivity
         unregisterReceiver(receiver);
 	}
 	
-	private void displayCourses(long userId) {
-
-		DbHelper db = DbHelper.getInstance(this);
+	private void displayCourses() {
         courses.clear();
-		courses.addAll(db.getCourses(userId));
+		courses.addAll(coursesRepository.getCourses(this));
 		
 		LinearLayout llLoading = (LinearLayout) this.findViewById(R.id.loading_courses);
 		llLoading.setVisibility(View.GONE);
@@ -302,7 +312,7 @@ public class OppiaMobileActivity
         Intent i = new Intent(OppiaMobileActivity.this, PrefsActivity.class);
         Bundle tb = new Bundle();
         ArrayList<Lang> langs = new ArrayList<>();
-        for(Course m: courses){ langs.addAll(m.getLangs()); }
+        for(Course m: courses){ langs.addAll(m.getMultiLangInfo().getLangs()); }
         tb.putSerializable("langs", langs);
         i.putExtras(tb);
         startActivity(i);
@@ -327,7 +337,7 @@ public class OppiaMobileActivity
     }
 	private void createLanguageDialog() {
 		ArrayList<Lang> langs = new ArrayList<>();
-		for(Course m: courses){ langs.addAll(m.getLangs()); }
+		for(Course m: courses){ langs.addAll(m.getMultiLangInfo().getLangs()); }
 
         UIUtils.createLanguageDialog(this, langs, prefs, new Callable<Boolean>() {
             public Boolean call() throws Exception {
@@ -409,7 +419,7 @@ public class OppiaMobileActivity
             public void onClick(DialogInterface dialog, int which) {
                 DbHelper db = DbHelper.getInstance(OppiaMobileActivity.this);
                 db.resetCourse(tempCourse.getCourseId(), OppiaMobileActivity.this.userId);
-                displayCourses(userId);
+                displayCourses();
             }
         });
 		builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -436,16 +446,9 @@ public class OppiaMobileActivity
 	}
 
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		
-		if(key.equalsIgnoreCase(PrefsActivity.PREF_SERVER)){
-			if(!sharedPreferences.getString(PrefsActivity.PREF_SERVER, "").endsWith("/")){
-				String newServer = sharedPreferences.getString(PrefsActivity.PREF_SERVER, "").trim()+"/";
-                sharedPreferences.edit().putString(PrefsActivity.PREF_SERVER, newServer).apply();
-			}
-		}
-		
+
 		if(key.equalsIgnoreCase(PrefsActivity.PREF_SHOW_SCHEDULE_REMINDERS) || key.equalsIgnoreCase(PrefsActivity.PREF_NO_SCHEDULE_REMINDERS)){
-			displayCourses(userId);
+			displayCourses();
 		}
 
 		if(key.equalsIgnoreCase(PrefsActivity.PREF_DOWNLOAD_VIA_CELLULAR_ENABLED)){
@@ -556,13 +559,13 @@ public class OppiaMobileActivity
         Toast.makeText(OppiaMobileActivity.this,
                 getString(response.isResult()? R.string.course_deleting_success : R.string.course_deleting_error),
                 Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
     }
 
     /* CourseInstallerListener implementation */
     public void onInstallComplete(String fileUrl) {
         Toast.makeText(this, this.getString(R.string.install_complete), Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
     }
     public void onDownloadProgress(String fileUrl, int progress) {}
     public void onInstallProgress(String fileUrl, int progress) {}
@@ -580,7 +583,7 @@ public class OppiaMobileActivity
                     response.isResult() ? R.string.course_updating_success : R.string.course_updating_error,
                     (course!=null) ? course.getShortname() : ""),
                 Toast.LENGTH_LONG).show();
-        displayCourses(userId);
+        displayCourses();
 	}
 
 
