@@ -380,7 +380,7 @@ public class DownloadMediaActivity extends AppActivity implements DownloadMediaL
             Toast.makeText(this,  this.getString(R.string.download_complete), Toast.LENGTH_LONG).show();
 
             SparseBooleanArray itemsChecked = mediaList.getCheckedItemPositions();
-            itemsChecked .delete(itemsChecked .keyAt(missingMedia.indexOf(mediaFile)));
+            itemsChecked.delete(itemsChecked.keyAt(missingMedia.indexOf(mediaFile)));
             missingMedia.remove(mediaFile);
             dmla.notifyDataSetChanged();
             emptyState.setVisibility((missingMedia.size()==0) ? View.VISIBLE : View.GONE);
