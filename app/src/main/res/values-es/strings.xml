@@ -134,8 +134,7 @@
 	<string name="logout">Cerrar sesión</string>
 	<string name="feedback">Feedback</string>
 	<string name="download">Descargar</string>
-	<string name="downloaded">Descargado</string>
-	<string name="open">Abrir</string>
+    <string name="open">Abrir</string>
 	
 	<string name="alert_pretest">Pre-test</string>
 	<string name="alert_pretest_summary">Este curso tiene un pre-test que debes completar antes de poder ver el curso completo.</string>
@@ -148,13 +147,10 @@
 	<string name="update_schedule">Actualizar planificación</string>
 	<string name="installed">Instalado</string>
 	<string name="install">Instalar</string>
-	
-	<string name="download_starting">Inicio descarga</string>
-	<string name="downloading">Descargando…</string>
-	<string name="download_complete">Descarga completa</string>
-	
-	<string name="update_starting">Obtener actualizaciones de planificación</string>
-	<string name="updating">Actualizando …</string>
+
+    <string name="download_complete">Descarga completa</string>
+
+    <string name="updating">Actualizando …</string>
 	<string name="update_complete">Actualización de planificación completa</string>
 	
 	<string name="installing_course">Instalando: %1$s</string>
@@ -174,9 +170,7 @@
 	
 	<string name="scan_media_download_button">Descarga</string>
 	<string name="scan_media_download_via_pc_button">Descarga vía PC</string>
-	<string name="success_media_download">Media: \'%1$s\' descargado correctamente.</string>
-	<string name="media_file_size">%1$.1fMb</string>
-    <string name="notification_media_title">&appName;: gestión de descargas</string>
+    <string name="media_file_size">%1$.1fMb</string>
     <string name="notification_media_subject">Todos los ficheros multimedia fueron descargados correctamente</string>
 	
 	<string name="error_connection">Error conectando al servidor. Por favor, comprueba que tienes una conexión a internet activa y prueba otra vez.</string>
@@ -188,11 +182,7 @@
 	<string name="error_login">Usuario o contraseña incorrectos\nInténtalo de nuevo</string>
 	<string name="error_sdcard">Tu tarjeta SD no está disponible - por favor reinicia la aplicación cuando vuelva a estarlo.\nLa app se cerrará ahora.</string>
 	<string name="error_media_not_found">Media: \'%1$s\' no encontrado.</string>
-	<string name="error_media_app_not_found">Parece que no tienes un reproductor multimedia instalado que pueda reproducir este vídeo.</string>
-	<string name="error_media_unsupported">\'%1$s\' no parece ser un tipo de fichero multimedia soportado.</string>
-	<string name="error_download_failure">Descarga fallida</string>
-	<string name="error_update_failure">Actualización fallida</string>
-	<string name="error_install_failure">Instalación fallida</string>
+    <string name="error_media_unsupported">\'%1$s\' no parece ser un tipo de fichero multimedia soportado.</string>
     <string name="error_register_no_email">Por favor, introduce tu email</string>
 	<string name="error_register_password">Tu contraseña debe tener al menos %1$d caracteres</string>
 	<string name="error_register_password_no_match">Las contraseña no coinciden</string>
@@ -246,8 +236,6 @@
 
     <string name="course_draft">(versión en borrador)</string>
     <string name="loading_course">Cargando curso&#8230;</string>
-    <string name="menu_font_decrease">Reducir tamaño de letra</string>
-    <string name="menu_font_increase">Aumentar tamaño de letra</string>
     <string name="more_courses">Descargar más cursos</string>
     <string name="register_form_organisation_title">Organización</string>
     <string name="register_form_jobtitle_title">Puesto de trabajo</string>
@@ -260,7 +248,6 @@
     <string name="info_upgrading">Actualizando a %1$s</string>
     <string name="prefAdminPassword">Cambiar contraseña de admin</string>
     <string name="prefAdminProtection">Proteger acciones de administrador con contraseña</string>
-    <string name="prefUserHint">(solo lectura)</string>
     <string name="tab_title_reset">Restaurar contraseña</string>
     <string name="title_btn_reset">Restaurar contraseña</string>
     <string name="error_insufficient_storage_available">Espacio de almacenamiento libre insuficiente</string>
@@ -284,7 +271,6 @@
     h
     <string name="info.startup.preloaded_accounts">Precargadas %1$d nueva(s) cuenta(s) de usuario.</string>
     <string name="empty_state_media">Genial! Has descargado todo el contenido multimedia de tus cursos en el dispositivo.</string>
-    <string name="menu_sort_by">Ordenar por</string>
     <string name="menu_sort_by_course">Ordenar por curso</string>
     <string name="menu_sort_by_filename">Ordenar por nombre de archivo</string>
     <string name="error_connection_ssl">Error conectando al servidor debido a problemas con SSL. Por favor, asegúrese de que el host del servidor de &appName; en los ajustes es correcto, y de que el dispositivo tiene configurada la fecha y hora actuales</string>

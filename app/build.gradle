@@ -76,16 +76,9 @@ android {
             resValue "string", "prefServerDefault", runtimeProps['OPPIA_SERVER_DEFAULT']
         }
 
-<<<<<<< HEAD
-        debug{
-            testCoverageEnabled = true
-
-        }
-=======
 	    debug{
             testCoverageEnabled = true
 	    }
->>>>>>> upstream/master
 
         release {
             minifyEnabled false
@@ -165,13 +158,10 @@ task grantPermissions (type: Exec, dependsOn: 'installDebug'){
     }
     commandLine "${adb} shell pm grant org.digitalcampus.mobile.learning android.permission.SET_ANIMATION_SCALE --stacktrace".split(" ")
 
-<<<<<<< HEAD
     println "Granting permissions on device"
     "${adb} shell pm grant org.intrahealth.zambia.oppia android.permission.READ_PHONE_STATE".execute()
     "${adb} shell pm grant org.intrahealth.zambia.oppia android.permission.READ_EXTERNAL_STORAGE".execute()
     "${adb} shell pm grant org.intrahealth.zambia.oppia android.permission.WRITE_EXTERNAL_STORAGE".execute()
-=======
->>>>>>> upstream/master
 }
 
 afterEvaluate {
@@ -183,8 +173,5 @@ afterEvaluate {
             task.dependsOn grantPermissions
         }
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> upstream/master
+

@@ -8,7 +8,6 @@
     <color name="text_grey">#666666</color>
     <color name="text_light">#ffffff</color>
     <color name="default_icon_foreground">#666666</color>
-    <color name="button_background">#eeeeee</color>
     <color name="activity_icon_background">#ffffff</color>
     <color name="highlight_label">#434343</color>
     <color name="highlight_separator">#b9b9b9</color>

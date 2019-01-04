@@ -17,8 +17,6 @@
     <string name="menu_language">Choisir la langue</string>
     <string name="menu_settings">Paramètres</string>
     <string name="menu_about">À propos</string>
-    <string name="menu_font_increase">Agrandir la taille du texte</string>
-    <string name="menu_font_decrease">Réduire la taille du texte</string>
     <string name="menu_help">Aide</string>
     <string name="menu_logout">Déconnection</string>
     <string name="menu_monitor">Moniteur</string>
@@ -27,7 +25,6 @@
     <string name="menu_scorecard">Carnet de notes</string>
     <string name="menu_search">Chercher</string>
     <string name="menu_stop_read_aloud">Arrêter la lecture</string>
-    <string name="menu_sort_by">Trier par</string>
     <string name="menu_sort_by_course">Trier par cours</string>
     <string name="menu_sort_by_filename">Trier par nom de fichier</string>
     <string name="menu_select_all">Tout sélectionner</string>
@@ -115,7 +112,6 @@
     <string name="prefShowSectionNumbers">Afficher les numéros des sections</string>
     <string name="prefTextSize">Taille du texte</string>
     <string name="prefUser">Nom d\'utilisateur</string>
-    <string name="prefUserHint">(Lecture seule)</string>
     <string name="prefLogoutEnabled">Permettre la déconnexion depuis la page d\'accueil</string>
     <string name="prefDeleteCourseEnabled">Permettre la supression de cours</string>
     <string name="prefDownloadViaCellularEnabled">Téléchargement de médias via le réseau cellulaire</string>
@@ -168,9 +164,7 @@
     <string name="logout">Se déconnecter</string>
     <string name="feedback">Feedback</string>
     <string name="download">Télécharger</string>
-    <string name="downloaded">Téléchargé</string>
     <string name="open">Ouvrir</string>
-    <string name="storage_default">Valeurs par défaut</string>
 
     <string name="alert_pretest">Pré-test</string>
     <string name="alert_pretest_summary">Ce cours contient un pré-test que vous devez effectuer avant de pouvoir accéder au cours.</string>
@@ -184,11 +178,8 @@
     <string name="installed">Installé</string>
     <string name="install">Installation en cours</string>
 
-    <string name="download_starting">Début du téléchargement</string>
-    <string name="downloading">Téléchargement en cours &#8230;</string>
     <string name="download_complete">Téléchargement terminé</string>
 
-    <string name="update_starting">Obtenir des mises à jour régulières</string>
     <string name="updating">Mise à jour en cours &#8230;</string>
     <string name="update_complete">Mise à jour terminée</string>
 
@@ -218,12 +209,10 @@
 
     <string name="scan_media_download_button">Télécharger</string>
     <string name="scan_media_download_via_pc_button">Télécharger à partir d\'un PC</string>
-    <string name="success_media_download">Fichier média : \'%1$s\' téléchargé avec succès.</string>
     <string name="media_file_size">%1$.1fMb</string>
     <string name="missing_media_download_selected">Télécharger la sélection</string>
     <string name="missing_media_stop_selected">Arrêter la sélection</string>
     <string name="missing_media_unselect_all">Tout dé-sélectionner</string>
-    <string name="notification_media_title">&appName;: gestion des médias</string>
     <string name="notification_media_subject">Tous les fichiers médias ont été téléchargés avec succès.</string>
 
     <string name="error_connection">Erreur lors de la connexion au serveur. Prière de vérifier votre connexion Internet avant d\'essayer de nouveau.</string>
@@ -232,7 +221,6 @@
     <string name="error_installing_course">Erreur lors de l\'installation du cours : %1$s</string>
     <string name="error_latest_already_installed">%1$s: Version la plus récente déjà installée</string>
     <string name="error_login">Nom d\'utilisateur/mot de passe non valides. Essayez de nouveau.</string>
-    <string name="error_media_app_not_found">Vous n\'avez pas le lecteur vidéo adéquat installé sur votre appareil.</string>
     <string name="error_no_username">Veuillez saisir votre nom d\'utilisateur</string>
     <string name="error_processing_response">Erreur lors du traitement des données</string>
     <string name="error_quiz_no_questions">Ce test ne contient pas de questions.</string>
@@ -252,9 +240,6 @@
     <string name="error_sdcard">Votre carte SD n\'est pas disponible - veuillez redémarrer l\'application lorsque votre carte SD sera disponible. \nL\'application va s\'arrêter.</string>
     <string name="error_media_not_found">Fichier média : \'%1$s\' non trouvé.</string>
     <string name="error_media_unsupported">\'%1$s\' n\'est pas un type de fichier valide.</string>
-    <string name="error_download_failure">Erreur lors du téléchargement</string>
-    <string name="error_update_failure">Erreur lors de la mise à jour</string>
-    <string name="error_install_failure">Erreur lors de l\'installation</string>
     <string name="error_media_download">Erreur lors du téléchargement de fichiers média, veuillez réessayer.</string>
     <string name="error_reading_xml">Erreur lors de l\'ouverture du cours. Veuillez réinstaller ce cours.</string>
     <string name="error_tts_start">La lecture à voix haute ne fonctionne pas. Veuillez vérifier que cette application est bien installée sur votre appareil et qu\'elle est activée</string>

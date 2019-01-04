@@ -10,12 +10,7 @@
 
     <!-- For AndroidPlot graphs -->
     <dimen name="pie_segment_label_font_size">16dp</dimen>
-    <dimen name="title_font_size">20dp</dimen>
-    <dimen name="domain_label_font_size">13dp</dimen>
-    <dimen name="range_label_font_size">13dp</dimen>
     <dimen name="range_tick_label_font_size">15dp</dimen>
-    <dimen name="domain_tick_label_font_size">15dp</dimen>
-    <dimen name="legend_text_font_size">20dp</dimen>
     <dimen name="tool_bar_top_padding">0dp</dimen>
     <dimen name="toolbar_tab_width">130dp</dimen>
 

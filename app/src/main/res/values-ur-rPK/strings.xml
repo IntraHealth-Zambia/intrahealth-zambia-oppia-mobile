@@ -8,8 +8,6 @@
     <string name="menu_language">زبان تبدیل کریں</string>
     <string name="menu_settings">سیٹنگز</string>
     <string name="menu_about">پروگرام کا تعارف</string>
-    <string name="menu_font_increase">لکھلئ بڑی کریں </string>
-    <string name="menu_font_decrease">لکھلئ چھوٹی کریں</string>
     <string name="menu_help">مدد</string>
     <string name="menu_logout">لاگ آؤٹ</string>
     <string name="menu_monitor">نگرانی کریں</string>
@@ -100,9 +98,8 @@
 	<string name="prefShowSectionNumbers">Show section numbers</string>
 	<string name="prefTextSize">Text size</string>
 	<string name="prefUser">Username</string>
-	<string name="prefUserHint">(read only)</string>
-	
-	<string name="notification_course_update_title">New course updates</string>
+
+    <string name="notification_course_update_title">New course updates</string>
 	<string name="notification_course_update_text">Updates are available for your courses.</string>
 	
 	<string name="title_login">لاگ ان</string>
@@ -134,8 +131,7 @@
 	<string name="logout">لاگ آؤٹ</string>
 	<string name="feedback">تاثرات</string>
 	<string name="download">ڈاؤن لوڈ</string>
-	<string name="downloaded">ڈاؤن لوڈ ہو چکا</string>
-	<string name="open">کھولیں</string>
+    <string name="open">کھولیں</string>
 	
 	<string name="alert_pretest">سابق تجربہ</string>
 	<string name="alert_pretest_summary">This course contains a pre-test which you need to complete before you can view the full course.</string>
@@ -147,13 +143,10 @@
 	<string name="update_schedule">Update Schedule</string>
 	<string name="installed">قائم</string>
 	<string name="install">انسٹال کریں</string>
-	
-	<string name="download_starting">ڈاؤن لوڈشروع</string>
-	<string name="downloading">ڈاؤن لوڈجاری &#8230;</string>
-	<string name="download_complete">ختم ڈاؤن لوڈ</string>
-	
-	<string name="update_starting">Getting schedule updates</string>
-	<string name="updating">Updating &#8230;</string>
+
+    <string name="download_complete">ختم ڈاؤن لوڈ</string>
+
+    <string name="updating">Updating &#8230;</string>
 	<string name="update_complete">Schedule update complete</string>
 	
 	<string name="installing_course">قائم ہو رہا ہے: %1$s</string>
@@ -175,16 +168,14 @@
 	
 	<string name="scan_media_download_button">ڈاؤن لوڈ</string>
 	<string name="scan_media_download_via_pc_button">کمپیوٹر کے زرئے ڈاؤن لوڈ</string>
-	<string name="success_media_download">Media file: \'%1$s\' ڈاؤن لوڈ کامیاب.</string>
-	<string name="media_file_size">%1$.1fMb</string>
+    <string name="media_file_size">%1$.1fMb</string>
 	
 	<string name="error_connection">Error connecting to server. Please check you have an active internet connection and try again.</string>
 	<string name="error_connection_required">You need an active internet connection to access this page. Please turn on wifi or mobile internet connection and try again.</string>
 	<string name="error_installing_course">%1$s: failed to install</string>
 	<string name="error_latest_already_installed">%1$s: latest version already installed</string>
 	<string name="error_login">Invalid username/password\nPlease try again</string>
-	<string name="error_media_app_not_found">You don\'t appear to have a media player installed which supports playing this video.</string>
-	<string name="error_no_username">Please enter your username</string>
+    <string name="error_no_username">Please enter your username</string>
 	<string name="error_processing_response">Error processing response</string>
 	<string name="error_quiz_no_questions">There aren\'t any questions in this quiz.</string>
 	<string name="error_register_no_email">Please enter your email address</string>
@@ -200,10 +191,7 @@
     <string name="error_sdcard">Your SD card is not available - please restart this app when the SD card is available.\nThe app will now close.</string>
 	<string name="error_media_not_found">Media file: \'%1$s\' not found.</string>
 	<string name="error_media_unsupported">\'%1$s\' does .فلم دستیاب نہیں ہے. براہ مہربانی دوبارہ ڈاؤن لوڈ کریں.</string>
-	<string name="error_download_failure">Download failed</string>
-	<string name="error_update_failure">Update failed</string>
-	<string name="error_install_failure">Install failed</string>
-	<string name="error_media_download">Error trying to download media, please try again later</string>
+    <string name="error_media_download">Error trying to download media, please try again later</string>
 	<string name="error_reading_xml">An error occurred trying to load the course. Please reinstall the course.</string>
 	<string name="error_tts_start">Text To Speech failed. Please check your phone to ensure have Text to Speech installed and enabled</string>
 	<string name="warning_wifi_required">You must be connected to a wifi network to download the media files.\nPlease connect to a wifi network to download the media files on your phone, or download the files via your PC.</string>

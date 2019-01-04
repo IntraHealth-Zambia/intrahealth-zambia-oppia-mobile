@@ -148,11 +148,6 @@
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Title</item>
     </style>
 
-    <style name="Oppia.ToolbarTheme.Toolbar" parent="Widget.AppCompat.Toolbar">
-        <item name="android:background">@drawable/actionbar_background_gradient</item>
-        <item name="background">@drawable/actionbar_background_gradient</item>
-    </style>
-
     <style name="Oppia.ToolbarTheme.AppTabLayout" parent="Widget.Design.TabLayout">
         <item name="tabMinWidth">@dimen/toolbar_tab_width</item>
         <item name="tabIndicatorColor">@color/highlight_mid</item>
