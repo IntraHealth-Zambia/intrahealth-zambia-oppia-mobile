@@ -37,15 +37,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import android.support.v7.widget.Toolbar;
-import org.digitalcampus.oppia.adapter.ActivityPagerAdapter;
-import org.digitalcampus.oppia.fragments.LoginFragment;
-import org.digitalcampus.oppia.fragments.RegisterFragment;
-import org.digitalcampus.oppia.fragments.ResetFragment;
-import org.digitalcampus.oppia.fragments.WelcomeFragment;
-import org.digitalcampus.oppia.model.Lang;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class WelcomeActivity extends AppActivity {
 
