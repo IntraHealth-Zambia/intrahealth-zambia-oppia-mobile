@@ -33,42 +33,53 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import android.support.v7.widget.Toolbar;
+import org.digitalcampus.oppia.adapter.ActivityPagerAdapter;
+import org.digitalcampus.oppia.fragments.LoginFragment;
+import org.digitalcampus.oppia.fragments.RegisterFragment;
+import org.digitalcampus.oppia.fragments.ResetFragment;
+import org.digitalcampus.oppia.fragments.WelcomeFragment;
+import org.digitalcampus.oppia.model.Lang;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WelcomeActivity extends AppActivity {
 
 	public static final String TAG = WelcomeActivity.class.getSimpleName();
-	private ViewPager viewPager;
+	public static final int TAB_WELCOME = 0;
+    public static final int TAB_LOGIN = 1;
+    public static final int TAB_REGISTER = 2;
+    public static final int TAB_PASSWORD = 3;
+
+    private ViewPager viewPager;
     private TabLayout tabs;
-    private int currentTab = 0;
+    private int currentTab = TAB_WELCOME;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		setContentView(R.layout.activity_about);
-
-        tabs = (TabLayout) findViewById(R.id.tabs_toolbar);
-
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null){
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeButtonEnabled(true);
-            actionBar.setDisplayShowTitleEnabled(true);
-        }
-
-		viewPager = (ViewPager) findViewById(R.id.activity_about_pager);
-
+		setContentView(R.layout.activity_welcome);
+        //tabs = (TabLayout) findViewById(R.id.tabs_toolbar);
+		viewPager = (ViewPager) findViewById(R.id.activity_welcome_pager);
 	}
 	
 	@Override
 	public void onStart() {
-		super.onStart();
+		super.onStart(true, false);
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		toolbar.getMenu().clear();
+		toolbar.inflateMenu(R.menu.activity_welcome);
+		toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem item) {
+				return onOptionsItemSelected(item);
+			}
+		});
+
 		List<Fragment> fragments = new ArrayList<>();
         List<String> tabTitles = new ArrayList<>();
 		
@@ -90,9 +101,9 @@ public class WelcomeActivity extends AppActivity {
 
         ActivityPagerAdapter apAdapter = new ActivityPagerAdapter(this, getSupportFragmentManager(), fragments, tabTitles);
 		viewPager.setAdapter(apAdapter);
-        tabs.setupWithViewPager(viewPager);
-        tabs.setTabMode(TabLayout.MODE_FIXED);
-        tabs.setTabGravity(TabLayout.GRAVITY_FILL);
+        //tabs.setupWithViewPager(viewPager);
+        //tabs.setTabMode(TabLayout.MODE_FIXED);
+        //tabs.setTabGravity(TabLayout.GRAVITY_FILL);
 
 		viewPager.setCurrentItem(currentTab);
         viewPager.setOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabs));
@@ -129,6 +140,16 @@ public class WelcomeActivity extends AppActivity {
 	public void switchTab(int tab){
 		viewPager.setCurrentItem(tab);
 		this.currentTab = tab;
+	}
+
+	@Override
+	public void onBackPressed() {
+		if (currentTab == TAB_WELCOME){
+			super.onBackPressed();
+		}
+		else{
+			switchTab(TAB_WELCOME);
+		}
 	}
 }
 

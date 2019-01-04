@@ -34,6 +34,7 @@ import org.digitalcampus.oppia.utils.storage.ExternalStorageStrategy;
 import org.digitalcampus.oppia.utils.storage.Storage;
 import org.digitalcampus.oppia.utils.storage.StorageAccessStrategy;
 import org.digitalcampus.oppia.utils.storage.StorageAccessStrategyFactory;
+import org.digitalcampus.oppia.utils.ui.DrawerMenuManager;
 
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -45,12 +46,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -72,8 +75,9 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
 	public static final String PREF_SERVER_TIMEOUT_RESP = "prefServerTimeoutResponse";
 	public static final String PREF_METADATA = "prefMetadata";
 	public static final String PREF_BACKGROUND_DATA_CONNECT = "prefBackgroundDataConnect";
-	
-	/*
+    public static final String PREF_APPLICATION_FIRST_RUN = "prefFirstRun";
+
+    /*
 	 * Start personal prefs - move these to UserProps table
 	 */
 	public static final String PREF_PHONE_NO = "prefPhoneNo";
@@ -95,9 +99,15 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
 	 */
 	public static final String PREF_LAST_MEDIA_SCAN = "prefLastMediaScan";
 	public static final String PREF_LOGOUT_ENABLED = "prefLogoutEnabled";
+    public static final String PREF_DOWNLOAD_ENABLED = "prefDownloadEnabled";
+    public static final String PREF_CHANGE_LANGUAGE_ENABLED = "prefChangeLanguageEnabled";
 	public static final String PREF_DELETE_COURSE_ENABLED = "prefDeleteCourseEnabled";
 	public static final String PREF_DOWNLOAD_VIA_CELLULAR_ENABLED = "prefDownloadViaCellularEnabled";
     public static final String PREF_DISABLE_NOTIFICATIONS = "prefDisableNotifications";
+    public static final String PREF_SHOW_GAMIFICATION_EVENTS = "prefShowGamificationEvents";
+
+
+    public static final String PREF_LAST_LEADERBOARD_FETCH = "prefLastLeaderboardFetch";
 
     public static final String PREF_STORAGE_OPTION = "prefStorageOption";
     public static final String STORAGE_OPTION_INTERNAL = "internal";
@@ -117,21 +127,30 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
     private SharedPreferences prefs;
     private ProgressDialog pDialog;
     private PreferencesFragment mPrefsFragment;
+    private DrawerMenuManager drawer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) { 
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_preferences);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         FragmentManager mFragmentManager = getFragmentManager();
         FragmentTransaction mFragmentTransaction = mFragmentManager.beginTransaction();
         mPrefsFragment = PreferencesFragment.newInstance();
-        mFragmentTransaction.replace(android.R.id.content, mPrefsFragment);
+        mFragmentTransaction.replace(R.id.root_layout, mPrefsFragment);
         mFragmentTransaction.commit();
 
         Bundle bundle = this.getIntent().getExtras();
         if(bundle != null) { mPrefsFragment.setArguments(bundle); }
+
 	}
+
+	protected void onStart(){
+        super.onStart();
+        drawer = new DrawerMenuManager(this, false);
+        drawer.initializeDrawer();
+    }
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -140,8 +159,9 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
 			case android.R.id.home:
 				this.finish();
 				return true;
+            default:
+                return false;
 		}
-		return true;
 	}
 
     @Override
@@ -160,9 +180,9 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
         Log.d(TAG, "Preference changed: " + key);
 
         if(key.equalsIgnoreCase(PrefsActivity.PREF_SERVER)){
-            String newServerURL = sharedPreferences.getString(PrefsActivity.PREF_SERVER, "");
+            String newServerURL = sharedPreferences.getString(PrefsActivity.PREF_SERVER, "").trim();
             if(!newServerURL.endsWith("/")){
-                newServerURL = newServerURL.trim()+"/";
+                newServerURL = newServerURL +"/";
                 sharedPreferences.edit().putString(PrefsActivity.PREF_SERVER, newServerURL).apply();
             }
             mPrefsFragment.updateServerPref(newServerURL);
@@ -261,19 +281,17 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
                 disableAdminProtection(sharedPreferences);
             }
         }
-        else if (key.equalsIgnoreCase(PREF_REMOTE_ADMIN)){
-            if (BuildConfig.FLAVOR.equals("admin")) {
-                boolean adminEnabled = sharedPreferences.getBoolean(PrefsActivity.PREF_REMOTE_ADMIN, false);
-                ComponentName adminReceiver = new ComponentName(this, AdminReceiver.class);
-                if (adminEnabled) {
-                    // Activate device administration
-                    Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-                    intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminReceiver);
-                    startActivityForResult(intent, ADMIN_ACTIVATION_REQUEST);
-                } else {
-                    DevicePolicyManager dpm = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
-                    dpm.removeActiveAdmin(adminReceiver);
-                }
+        else if (key.equalsIgnoreCase(PREF_REMOTE_ADMIN) && BuildConfig.FLAVOR.equals("admin")) {
+            boolean adminEnabled = sharedPreferences.getBoolean(PrefsActivity.PREF_REMOTE_ADMIN, false);
+            ComponentName adminReceiver = new ComponentName(this, AdminReceiver.class);
+            if (adminEnabled) {
+                // Activate device administration
+                Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminReceiver);
+                startActivityForResult(intent, ADMIN_ACTIVATION_REQUEST);
+            } else {
+                DevicePolicyManager dpm = (DevicePolicyManager) this.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                dpm.removeActiveAdmin(adminReceiver);
             }
         }
     }
@@ -327,7 +345,9 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
     }
 
     //@Override
-    public void moveStorageProgressUpdate(String s) { }
+    public void moveStorageProgressUpdate(String s) {
+        // no need to show storage progress in this activity
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -337,13 +357,33 @@ public class PrefsActivity extends AppActivity implements SharedPreferences.OnSh
 
                 boolean adminEnabled = (resultCode == Activity.RESULT_OK);
                 Log.i(TAG, "Remote admin " + (adminEnabled?"allowed":"denied") + " by the user.");
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putBoolean(PrefsActivity.PREF_REMOTE_ADMIN, adminEnabled);
+                prefs.edit().putBoolean(PrefsActivity.PREF_REMOTE_ADMIN, adminEnabled).apply();
                 CheckBoxPreference adminPref = (CheckBoxPreference) mPrefsFragment.findPreference(PREF_REMOTE_ADMIN);
                 adminPref.setChecked(adminEnabled);
                 return;
+            default:
+                break;
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        drawer.onPrepareOptionsMenu(menu, R.id.menu_settings);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        drawer.onPostCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Pass any configuration change to the drawer toggle
+        drawer.onConfigurationChanged(newConfig);
+    }
 }

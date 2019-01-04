@@ -27,11 +27,13 @@ import org.digitalcampus.oppia.activity.CourseActivity;
 import org.digitalcampus.oppia.activity.PrefsActivity;
 import org.digitalcampus.oppia.application.MobileLearning;
 import org.digitalcampus.oppia.application.Tracker;
+import org.digitalcampus.oppia.gamification.GamificationEngine;
+import org.digitalcampus.oppia.gamification.GamificationServiceDelegate;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.Course;
+import org.digitalcampus.oppia.model.GamificationEvent;
 import org.digitalcampus.oppia.utils.MetaDataUtils;
 import org.digitalcampus.oppia.utils.resources.ExternalResourceOpener;
-import org.digitalcampus.oppia.utils.storage.Storage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,7 +61,13 @@ import android.widget.Toast;
 
 public class ResourceWidget extends WidgetFactory {
 
-	public static final String TAG = ResourceWidget.class.getSimpleName();	
+	public static final String TAG = ResourceWidget.class.getSimpleName();
+
+
+	private static final String PROPERTY_RESOURCE_VIEWING = "Resource_Viewing";
+    private static final String PROPERTY_RESOURCE_STARTTIME = "Resource_StartTime";
+    private static final String PROPERTY_RESOURCE_FILENAME = "Resource_FileName";
+
 	private boolean resourceViewing = false;
 	private long resourceStartTime;
 	private String resourceFileName;
@@ -77,7 +85,7 @@ public class ResourceWidget extends WidgetFactory {
 	}
 
 	public ResourceWidget() {
-
+		// Required empty public constructor
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -91,8 +99,8 @@ public class ResourceWidget extends WidgetFactory {
 		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		vv.setLayoutParams(lp);
 		vv.setId(activity.getActId());
-		if ((savedInstanceState != null) && (savedInstanceState.getSerializable("widget_config") != null)){
-			setWidgetConfig((HashMap<String, Object>) savedInstanceState.getSerializable("widget_config"));
+		if ((savedInstanceState != null) && (savedInstanceState.getSerializable(WidgetFactory.WIDGET_CONFIG) != null)){
+			setWidgetConfig((HashMap<String, Object>) savedInstanceState.getSerializable(WidgetFactory.WIDGET_CONFIG));
 		}
 		return vv;
 	}
@@ -100,7 +108,7 @@ public class ResourceWidget extends WidgetFactory {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putSerializable("widget_config", this.getWidgetConfig());
+		outState.putSerializable(WidgetFactory.WIDGET_CONFIG, this.getWidgetConfig());
 	}
 	
 	@Override
@@ -122,7 +130,7 @@ public class ResourceWidget extends WidgetFactory {
 		
 		File file = new File(fileUrl);
 		setResourceFileName(file.getName());
-		OnResourceClickListener orcl = new OnResourceClickListener(super.getActivity(),activity.getMimeType());
+		OnResourceClickListener orcl = new OnResourceClickListener(super.getActivity());
 		// show image files
 		if (activity.getMimeType().equals("image/jpeg") || activity.getMimeType().equals("image/png")){
 			ImageView iv = new ImageView(super.getActivity());
@@ -151,7 +159,7 @@ public class ResourceWidget extends WidgetFactory {
 		editor.putBoolean("widget_"+activity.getDigest()+"_Resource_Viewing", this.isResourceViewing());
 		editor.putLong("widget_"+activity.getDigest()+"_Resource_StartTime", this.getResourceStartTime());
 		editor.putString("widget_"+activity.getDigest()+"_Resource_FileName", this.getResourceFileName());
-		editor.commit();
+		editor.apply();
 	}
 	
 	@Override
@@ -183,7 +191,7 @@ public class ResourceWidget extends WidgetFactory {
 				editor.remove(entry.getKey());
 			}            
 		 }
-		editor.commit();
+		editor.apply();
 	}
 	
 	private void resourceStopped() {
@@ -205,14 +213,19 @@ public class ResourceWidget extends WidgetFactory {
 				Mint.logException(e);
 				e.printStackTrace();
 			}
-			MetaDataUtils mdu = new MetaDataUtils(super.getActivity());
+
 			// add in extra meta-data
 			try {
+				MetaDataUtils mdu = new MetaDataUtils(super.getActivity());
 				data = mdu.getMetaData(data);
 			} catch (JSONException e) {
 				// Do nothing
 			}
-			t.saveTracker(course.getCourseId(), activity.getDigest(), data, true);
+
+			GamificationEngine gamificationEngine = new GamificationEngine( getActivity());
+			GamificationEvent gamificationEvent = gamificationEngine.processEventResourceStoppedActivity();
+
+			t.saveTracker(course.getCourseId(), activity.getDigest(), data, true, gamificationEvent);
 
 		}
 
@@ -226,55 +239,38 @@ public class ResourceWidget extends WidgetFactory {
 	@Override
 	public void saveTracker(){
 		long timetaken = this.getSpentTime();
-		if (timetaken < MobileLearning.RESOURCE_READ_TIME) {
+		if (activity == null || timetaken < MobileLearning.RESOURCE_READ_TIME) {
 			return;
 		}
-		Tracker t = new Tracker(super.getActivity());
-		JSONObject obj = new JSONObject();
-		
-		// add in extra meta-data
-		try {
-			MetaDataUtils mdu = new MetaDataUtils(super.getActivity());
-			obj.put("timetaken", timetaken);
-			obj = mdu.getMetaData(obj);
-			String lang = prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage());
-			obj.put("lang", lang);
-			// if it's a baseline activity then assume completed
-			if(this.isBaseline){
-				t.saveTracker(course.getCourseId(), activity.getDigest(), obj, true);
-			} else {
-				t.saveTracker(course.getCourseId(), activity.getDigest(), obj, this.getActivityCompleted());
-			}
-		} catch (JSONException e) {
-			// Do nothing
-		} catch (NullPointerException npe){
-			//do nothing
-		}
+
+		new GamificationServiceDelegate(getActivity())
+				.createActivityIntent(course, activity, getActivityCompleted(), isBaseline)
+				.registerResourceEvent(timetaken);
 	}
 
 	@Override
 	public HashMap<String, Object> getWidgetConfig() {
-		HashMap<String, Object> config = new HashMap<String, Object>();
-		config.put("Activity_StartTime", this.getStartTime());
-		config.put("Resource_Viewing", this.isResourceViewing());
-		config.put("Resource_StartTime", this.getResourceStartTime());
-		config.put("Resource_FileName", this.getResourceFileName());
+		HashMap<String, Object> config = new HashMap<>();
+		config.put(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME, this.getStartTime());
+		config.put(PROPERTY_RESOURCE_VIEWING, this.isResourceViewing());
+		config.put(PROPERTY_RESOURCE_STARTTIME, this.getResourceStartTime());
+		config.put(PROPERTY_RESOURCE_FILENAME, this.getResourceFileName());
 		return config;
 	}
 
 	@Override
 	public void setWidgetConfig(HashMap<String, Object> config) {
-		if (config.containsKey("Activity_StartTime")){
-			this.setStartTime((Long) config.get("Activity_StartTime"));
+		if (config.containsKey(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME)){
+			this.setStartTime((Long) config.get(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME));
 		}
-		if (config.containsKey("Resource_Viewing")){
-			this.setResourceViewing((Boolean) config.get("Resource_Viewing"));
+		if (config.containsKey(PROPERTY_RESOURCE_VIEWING)){
+			this.setResourceViewing((Boolean) config.get(PROPERTY_RESOURCE_VIEWING));
 		}
-		if (config.containsKey("Resource_StartTime")){
-			this.setResourceStartTime((Long) config.get("Resource_StartTime"));
+		if (config.containsKey(PROPERTY_RESOURCE_STARTTIME)){
+			this.setResourceStartTime((Long) config.get(PROPERTY_RESOURCE_STARTTIME));
 		}
-		if (config.containsKey("Resource_FileName")){
-			this.setResourceFileName((String) config.get("Resource_FileName"));
+		if (config.containsKey(PROPERTY_RESOURCE_FILENAME)){
+			this.setResourceFileName((String) config.get(PROPERTY_RESOURCE_FILENAME));
 		}
 	}
 	
@@ -309,32 +305,27 @@ public class ResourceWidget extends WidgetFactory {
 	
 	private class OnResourceClickListener implements OnClickListener{
 
-		private Context _ctx;
-		private String type;
+		private Context ctx;
 		
-		public OnResourceClickListener(Context ctx, String type){
-			this._ctx = ctx;
-			this.type = type;
+		public OnResourceClickListener(Context ctx){
+			this.ctx = ctx;
 		}
 
 		public void onClick(View v) {
 			File file = (File) v.getTag();
 			// check the file is on the file system (should be but just in case)
-			boolean exists = Storage.mediaFileExists(_ctx, file.getName());
-			if(!exists){
-				Toast.makeText(_ctx, _ctx.getString(R.string.error_resource_not_found,file.getName()), Toast.LENGTH_LONG).show();
+			if(!file.exists()){
+				Toast.makeText(ctx, ctx.getString(R.string.error_resource_not_found, file.getName()), Toast.LENGTH_LONG).show();
 				return;
-			} 
-			Uri targetUri = Uri.fromFile(file);
-
-            Intent intent = ExternalResourceOpener.getIntentToOpenResource(_ctx, targetUri, type);
+			}
+            Intent intent = ExternalResourceOpener.getIntentToOpenResource(ctx, file);
             if(intent != null){
                 ResourceWidget.this.setResourceViewing(true);
                 ResourceWidget.this.setResourceStartTime(System.currentTimeMillis()/1000);
-                _ctx.startActivity(intent);
+                ctx.startActivity(intent);
             } else {
-                Toast.makeText(_ctx,
-                        _ctx.getString(R.string.error_resource_app_not_found, file.getName()),
+                Toast.makeText(ctx,
+                        ctx.getString(R.string.error_resource_app_not_found, file.getName()),
                         Toast.LENGTH_LONG).show();
             }
 		}

@@ -18,6 +18,7 @@
 package org.digitalcampus.oppia.task;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.splunk.mint.Mint;
 
@@ -25,7 +26,6 @@ import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.api.ApiEndpoint;
 import org.digitalcampus.oppia.application.DbHelper;
 import org.digitalcampus.oppia.application.MobileLearning;
-import org.digitalcampus.oppia.listener.SubmitListener;
 import org.digitalcampus.oppia.model.User;
 import org.digitalcampus.oppia.utils.HTTPClientUtils;
 import org.digitalcampus.oppia.utils.MetaDataUtils;
@@ -34,6 +34,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -43,24 +45,52 @@ import okhttp3.Response;
 public class RegisterTask extends APIRequestTask<Payload, Object, Payload> {
 
 	public static final String TAG = RegisterTask.class.getSimpleName();
+	private static final String SUBMIT_ERROR = "submit_error";
 
-	private SubmitListener mStateListener;
+	private RegisterListener mStateListener;
 
     public RegisterTask(Context ctx) { super(ctx); }
     public RegisterTask(Context ctx, ApiEndpoint api) { super(ctx, api); }
+
+    public interface RegisterListener{
+        void onSubmitComplete(User u);
+        void onSubmitError(String error);
+        void onConnectionError(String error, User u);
+    }
 
     @Override
 	protected Payload doInBackground(Payload... params) {
 
 		Payload payload = params[0];
-		User u = (User) payload.getData().get(0);
+		User user = (User) payload.getData().get(0);
+        payload.getResponseData().clear();
 
-		try {
-			// update progress dialog
-			publishProgress(ctx.getString(R.string.register_process));
-			// add post params
-			JSONObject json = new JSONObject();
-			json.put("username", u.getUsername());
+        boolean saveUser = true;
+        if (!user.isOfflineRegister()){
+            saveUser = submitUserToServer(user, payload, true);
+        }
+
+        if (saveUser){
+            // add or update user in db
+            DbHelper.getInstance(ctx).addOrUpdateUser(user);
+            payload.setResult(true);
+            payload.setResultResponse(ctx.getString(R.string.register_complete));
+        }
+
+		return payload;
+	}
+
+
+	public boolean submitUserToServer(User u, Payload payload, boolean updateProgress){
+        try {
+            if (updateProgress){
+                // update progress dialog
+                publishProgress(ctx.getString(R.string.register_process));
+            }
+
+            // add post params
+            JSONObject json = new JSONObject();
+            json.put("username", u.getUsername());
             json.put("password", u.getPassword());
             json.put("passwordagain",u.getPasswordAgain());
             json.put("email",u.getEmail());
@@ -77,18 +107,17 @@ public class RegisterTask extends APIRequestTask<Payload, Object, Payload> {
                     .build();
 
 
-			// make request
+            // make request
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()){
                 JSONObject jsonResp = new JSONObject(response.body().string());
                 u.setApiKey(jsonResp.getString("api_key"));
                 try {
-                    u.setPoints(jsonResp.getInt("points"));
                     u.setBadges(jsonResp.getInt("badges"));
                 } catch (JSONException e){
-                    u.setPoints(0);
                     u.setBadges(0);
                 }
+
                 try {
                     u.setScoringEnabled(jsonResp.getBoolean("scoring"));
                     u.setBadgingEnabled(jsonResp.getBoolean("badging"));
@@ -96,6 +125,7 @@ public class RegisterTask extends APIRequestTask<Payload, Object, Payload> {
                     u.setScoringEnabled(true);
                     u.setBadgingEnabled(true);
                 }
+
                 try {
                     JSONObject metadata = jsonResp.getJSONObject("metadata");
                     MetaDataUtils mu = new MetaDataUtils(ctx);
@@ -103,21 +133,19 @@ public class RegisterTask extends APIRequestTask<Payload, Object, Payload> {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
                 u.setFirstname(jsonResp.getString("first_name"));
                 u.setLastname(jsonResp.getString("last_name"));
-
-                // add or update user in db
-                DbHelper db = DbHelper.getInstance(ctx);
-                db.addOrUpdateUser(u);
-
-                payload.setResult(true);
-                payload.setResultResponse(ctx.getString(R.string.register_complete));
+                return true;
             }
             else{
                 switch (response.code()) {
                     case 400:
+                        String bodyResponse = response.body().string();
                         payload.setResult(false);
-                        payload.setResultResponse(response.body().string());
+                        payload.setResponseData(new ArrayList<Object>(Arrays.asList(SUBMIT_ERROR)));
+                        payload.setResultResponse(bodyResponse);
+                        Log.d(TAG, bodyResponse);
                         break;
                     default:
                         payload.setResult(false);
@@ -125,35 +153,57 @@ public class RegisterTask extends APIRequestTask<Payload, Object, Payload> {
                 }
             }
 
-		} catch(javax.net.ssl.SSLHandshakeException e) {
+        } catch(javax.net.ssl.SSLHandshakeException e) {
             e.printStackTrace();
             payload.setResult(false);
             payload.setResultResponse(ctx.getString(R.string.error_connection_ssl));
         } catch (UnsupportedEncodingException e) {
-			payload.setResult(false);
-			payload.setResultResponse(ctx.getString(R.string.error_connection));
-		} catch (IOException e) {
-			payload.setResult(false);
-			payload.setResultResponse(ctx.getString(R.string.error_connection_required));
-		} catch (JSONException e) {
-			Mint.logException(e);
-			e.printStackTrace();
-			payload.setResult(false);
-			payload.setResultResponse(ctx.getString(R.string.error_processing_response));
-		} 
-		return payload;
-	}
+            payload.setResult(false);
+
+            payload.setResultResponse(ctx.getString(R.string.error_connection));
+        } catch (IOException e) {
+            payload.setResult(false);
+            payload.setResultResponse(ctx.getString(R.string.error_connection_required));
+        } catch (JSONException e) {
+            Mint.logException(e);
+            e.printStackTrace();
+            payload.setResult(false);
+            payload.setResultResponse(ctx.getString(R.string.error_processing_response));
+        }
+        return false;
+    }
 
 	@Override
 	protected void onPostExecute(Payload response) {
 		synchronized (this) {
 			if (mStateListener != null) {
-				mStateListener.submitComplete(response);
+                User user = (User) response.getData().get(0);
+			    if (response.isResult()){
+			        mStateListener.onSubmitComplete(user);
+                    return;
+			    }
+
+                String errorMessage = response.getResultResponse();
+			    if ((response.getResponseData() != null) && (response.getResponseData().size()>0)){
+			        String data = (String) response.getResponseData().get(0);
+			        if (data.equals(SUBMIT_ERROR)){
+                        try {
+                            JSONObject jo = new JSONObject(errorMessage);
+                            errorMessage = jo.getString("error");
+                        } catch (JSONException je) {
+                            Log.d(TAG, je.getMessage());
+                        }
+			            mStateListener.onSubmitError(errorMessage);
+                        return;
+                    }
+                }
+
+				mStateListener.onConnectionError(errorMessage, user);
 			}
 		}
 	}
 
-	public void setRegisterListener(SubmitListener srl) {
+	public void setRegisterListener(RegisterListener srl) {
 		synchronized (this) {
 			mStateListener = srl;
 		}

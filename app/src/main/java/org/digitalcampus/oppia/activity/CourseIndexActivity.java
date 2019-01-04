@@ -17,15 +17,26 @@
 
 package org.digitalcampus.oppia.activity;
 
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
+import android.animation.ValueAnimator;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.view.ViewCompat;
+import android.support.v7.app.AlertDialog;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.widget.ListView;
 
 import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.adapter.SectionListAdapter;
 import org.digitalcampus.oppia.application.MobileLearning;
-import org.digitalcampus.oppia.exception.InvalidXMLException;
 import org.digitalcampus.oppia.model.Activity;
 import org.digitalcampus.oppia.model.CompleteCourse;
 import org.digitalcampus.oppia.model.CompleteCourseProvider;
@@ -37,23 +48,11 @@ import org.digitalcampus.oppia.service.TrackerService;
 import org.digitalcampus.oppia.task.ParseCourseXMLTask;
 import org.digitalcampus.oppia.utils.ImageUtils;
 import org.digitalcampus.oppia.utils.UIUtils;
-import org.digitalcampus.oppia.utils.xmlreaders.CourseXMLReader;
 
-import android.animation.ValueAnimator;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v7.app.AlertDialog;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.widget.ListView;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
@@ -80,14 +79,13 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_course_index);
-
-        initializeDagger();
+	    initializeDagger();
 		
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.registerOnSharedPreferenceChangeListener(this);
         loadingCourseView =  findViewById(R.id.loading_course);
 
-		Bundle bundle = this.getIntent().getExtras();
+        Bundle bundle = this.getIntent().getExtras();
 		if (bundle != null) {
 			course = (Course) bundle.getSerializable(Course.TAG);
 
@@ -125,13 +123,6 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
     @Override
 	public void onStart() {
 		super.onStart();
-		// set image
-		if (course.getImageFile() != null) {
-			BitmapDrawable bm = ImageUtils.LoadBMPsdcard(course.getImageFileFromRoot(), this.getResources(),
-					R.drawable.dc_logo);
-			//getSupportActionBar().setIcon(bm);
-            getSupportActionBar().setHomeAsUpIndicator(bm);
-        }
     }
 
     @Override
@@ -166,7 +157,7 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
         }
         editor.apply();
 
-        if ((parsedCourse != null) && (sections != null) && (sections.size()>0)){
+        if ((parsedCourse != null) && (sections != null) && (!sections.isEmpty())){
             parsedCourse.setCourseId(course.getCourseId());
             parsedCourse.updateCourseActivity(this);
             sla.notifyDataSetChanged();
@@ -249,8 +240,8 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
     private void initializeCourseIndex(boolean animate){
 
         final ListView listView = (ListView) findViewById(R.id.section_list);
-        if (listView == null) return;
-
+	if (listView == null) return;        
+	ViewCompat.setNestedScrollingEnabled(listView, true);
         sla = new SectionListAdapter(CourseIndexActivity.this, course, sections, new SectionListAdapter.CourseClickListener() {
             @Override
             public void onActivityClicked(String activityDigest) {
@@ -286,7 +277,6 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 
     private boolean isBaselineCompleted() {
         ArrayList<Activity> baselineActs = parsedCourse.getBaselineActivities();
-        // TODO how to handle if more than one baseline activity
         for (Activity a : baselineActs) {
             if (!a.isAttempted()) {
                 this.baselineActivity = a;
@@ -386,6 +376,8 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
     public void onParseComplete(CompleteCourse parsed) {
         parsedCourse = parsed;
         course.setMetaPages(parsedCourse.getMetaPages());
+        course.setMedia(parsedCourse.getMedia());
+        course.setGamificationEvents(parsedCourse.getGamification());
         sections = parsedCourse.getSections();
 
         boolean baselineCompleted = isBaselineCompleted();
@@ -393,7 +385,6 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
             showBaselineMessage(null);
         }
         initializeCourseIndex(true);
-        invalidateOptionsMenu();
     }
 
     //@Override
@@ -401,11 +392,9 @@ public class CourseIndexActivity extends AppActivity implements OnSharedPreferen
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) {
-            if(resultCode == RESULT_JUMPTO){
-                String digest = data.getStringExtra(JUMPTO_TAG);
-                startCourseActivityByDigest(digest);
-            }
+        if (requestCode == 1 && resultCode == RESULT_JUMPTO){
+            String digest = data.getStringExtra(JUMPTO_TAG);
+            startCourseActivityByDigest(digest);
         }
     }
 }

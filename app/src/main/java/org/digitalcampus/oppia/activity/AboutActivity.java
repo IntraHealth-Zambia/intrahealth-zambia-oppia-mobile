@@ -22,19 +22,13 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import org.intrahealth.zambia.oppia.R;
 import org.digitalcampus.oppia.adapter.ActivityPagerAdapter;
 import org.digitalcampus.oppia.fragments.AboutFragment;
 import org.digitalcampus.oppia.fragments.OppiaWebViewFragment;
-import org.digitalcampus.oppia.fragments.StatsFragment;
-import org.digitalcampus.oppia.utils.storage.FileUtils;
 import org.digitalcampus.oppia.utils.storage.Storage;
 
 import java.util.ArrayList;
@@ -49,12 +43,9 @@ public class AboutActivity extends AppActivity {
 	public static final int TAB_ABOUT = 0;
 	public static final int TAB_HELP = 1;
 	public static final int TAB_PRIVACY = 2;
-	public static final int TAB_STATS = 3;
 
-	private ActionBar actionBar;
 	private ViewPager viewPager;
     private TabLayout tabs;
-	private ActivityPagerAdapter apAdapter;
 	private int currentTab = 0;
 	private SharedPreferences prefs;
 	
@@ -63,21 +54,14 @@ public class AboutActivity extends AppActivity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_about);
-		actionBar = getSupportActionBar();
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		viewPager = (ViewPager) findViewById(R.id.activity_about_pager);
 
         tabs = (TabLayout) findViewById(R.id.tabs_toolbar);
 
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
-        actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayShowTitleEnabled(true);
-		
 		Bundle bundle = this.getIntent().getExtras();
 		if (bundle != null) {
-			currentTab = (Integer) bundle.getSerializable(AboutActivity.TAB_ACTIVE);
+			currentTab = bundle.getInt(AboutActivity.TAB_ACTIVE);
 		}
 	}
 	
@@ -86,7 +70,7 @@ public class AboutActivity extends AppActivity {
 		super.onStart();
 
 		String lang = prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage());
-		List<Fragment> fragments = new ArrayList<Fragment>();
+		List<Fragment> fragments = new ArrayList<>();
         List<String> titles = new ArrayList<>();
 		
 		Fragment fAbout = AboutFragment.newInstance();
@@ -102,29 +86,23 @@ public class AboutActivity extends AppActivity {
 		Fragment fPrivacy = OppiaWebViewFragment.newInstance(TAB_PRIVACY, url);
 		fragments.add(fPrivacy);
         titles.add(this.getString(R.string.tab_title_privacy));
-		
-		Fragment fStats = StatsFragment.newInstance();
-		fragments.add(fStats);
-        titles.add(this.getString(R.string.tab_title_activity));
-		
-		apAdapter = new ActivityPagerAdapter(this, getSupportFragmentManager(), fragments, titles);
-		viewPager.setAdapter(apAdapter);
-        tabs.setupWithViewPager(viewPager);
-        tabs.setTabMode(TabLayout.MODE_FIXED);
-        tabs.setTabGravity(TabLayout.GRAVITY_FILL);
 
+		ActivityPagerAdapter adapter = new ActivityPagerAdapter(this, getSupportFragmentManager(), fragments, titles);
+		viewPager.setAdapter(adapter);
+        tabs.setupWithViewPager(viewPager);
+		adapter.updateTabViews(tabs);
 		viewPager.setCurrentItem(currentTab);
         viewPager.setOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabs));
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle item selection
 		switch (item.getItemId()) {
 			case android.R.id.home:
 				this.finish();
 				return true;
+			default:
+				return false;
 		}
-		return true;
 	}
 }

@@ -1,6 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE resources [
+	<!ENTITY appName "OppiaMobile">
+	<!ENTITY companyName "Digital Campus"> ]>
+
 <resources>
-    <string name="app_name">OppiaMobile</string>
-    <string name="app_logo_alt">Digital Campus Logo</string>
+    <string name="app_name">&appName;</string>
+    <string name="app_logo_alt">&companyName; Logo</string>
     
     <string name="menu_download">कोर्स डाउनलोड करें</string>
     <string name="menu_language">भाषा बदलें</string>
@@ -8,14 +13,13 @@
     <string name="menu_about">प्रोग्राम के बारे में जाने</string>
     <string name="menu_help">मदद</string>
     <string name="menu_logout">लॉग आउट</string>
-    <string name="menu_monitor">निगरानी करें</string>
     <string name="menu_read_aloud">ज़ोर से पढ़े</string>
     <string name="menu_return_to_courses">कोर्स लिस्ट पर वापस जायें</string>
     <string name="menu_scorecard">स्कोरकार्ड</string>
     <string name="menu_search">खोज</string>
     <string name="menu_stop_read_aloud">पढ़ना रोकें</string>
     
-    <string name="service_tracker">OppiaMobile Tracker Service</string>
+    <string name="service_tracker">&appName; Tracker Service</string>
     
     <string name="fragment_welcome_title">उज्जवल साथी प्रोग्राम में आपका स्वागत है</string>
     <string name="fragment_welcome_desc">यह प्रोग्राम के माध्यम से आप अपने मोबाइल के ज़रिये स्वास्थ्य सम्बंधित जानकारी प्राप्त कर सकते हैं एवं स्वस्थ्य सम्बंधित फिल्में देख सकतें हैं और दूसरों को दिखा भी सकते हैं.</string>
@@ -40,7 +44,6 @@
     <string name="title_activity_course_index">Course Index</string>
     <string name="title_activity_course">Activity</string>
     <string name="title_course_meta">प्रोग्राम के बारे में जाने</string>
-    <string name="title_monitor">निगरानी करें</string>
     <string name="title_prefs">सेटिंग</string>
     <string name="title_scorecard">स्कोरकार्ड</string>
     <string name="search.activity_title">खोज</string>
@@ -99,14 +102,14 @@
 	<string name="login_password_title">पासवर्ड</string>
 	<string name="title_register">पंजीकरण</string>
 	
-	<string name="register_form_username_title">उपयोगकर्ता का नाम  (*)</string>
-	<string name="register_form_email_title">ईमेल पता  (*)</string>
-	<string name="register_form_firstname_title"> पहला नाम  (*)</string>
+	<string name="register_form_username_title">उपयोगकर्ता का नाम </string>
+	<string name="register_form_email_title">ईमेल पता </string>
+	<string name="register_form_firstname_title"> पहला नाम </string>
 	<string name="register_form_jobtitle_title">व्यवसाय </string>
-	<string name="register_form_lastname_title"> अंतिम नाम (*)</string>
+	<string name="register_form_lastname_title"> अंतिम नाम </string>
 	<string name="register_form_organisation_title">संस्था </string>
-	<string name="register_form_password_title">पासवर्ड  (*)</string>
-	<string name="register_form_password_again_title">पासवर्ड दोबारा लिखें (*)</string>
+	<string name="register_form_password_title">पासवर्ड </string>
+	<string name="register_form_password_again_title">पासवर्ड दोबारा लिखें </string>
 	<string name="register_btn_text">पंजीकरण </string>
 	
 	<string name="reset_username_title">उपयोगकर्ता का नाम </string>

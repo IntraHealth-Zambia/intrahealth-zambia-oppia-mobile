@@ -35,10 +35,28 @@
         <item name="colorPrimaryDark">@color/highlight_shadow</item>
         <item name="colorAccent">@color/highlight_secondary</item>
         <item name="alertDialogTheme">@style/Oppia.AlertDialogStyle</item>
+        <item name="android:textAppearanceButton">@style/TextAppearanceButtonBorderless</item>
+        <item name="android:buttonStyle">@style/RaisedButton</item>
     </style>
 
     <style name="Oppia.Theme.Dark" parent="@style/Oppia.Theme">
         <item name="android:windowBackground">@color/background_dark</item>
+    </style>
+
+    <style name="TextAppearanceButtonBorderless" parent="TextAppearance.AppCompat.Widget.Button">
+        <item name="fontPath">fonts/montserrat.ttf</item>
+    </style>
+    <style name="RaisedButton" parent="Widget.AppCompat.Button">
+        <item name="fontPath">fonts/montserrat.ttf</item>
+    </style>
+
+    <style name="PrimaryButton" parent="Widget.AppCompat.Button.Colored">
+        <item name="colorButtonNormal">@color/highlight_light</item>
+        <item name="android:textColor">@color/text_light</item>
+    </style>
+
+    <style name="Oppia.TextLabel" parent="TextAppearance.Design.Hint">
+        <item name="android:textSize">13sp</item>
     </style>
 
     <style name="Oppia.ToolbarTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -46,6 +64,12 @@
         <item name="colorPrimaryDark">@color/highlight_shadow</item>
         <item name="colorAccent">@color/highlight_secondary</item>
         <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="Oppia.Dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/highlight_light</item>
+        <item name="colorPrimaryDark">@color/highlight_shadow</item>
+        <item name="colorAccent">@color/highlight_secondary</item>
     </style>
 
     <style name="Oppia.ToolbarTheme.Dark" parent="@style/Oppia.ToolbarTheme">
@@ -74,7 +98,7 @@
     <style name="Oppia.ActionBar.TitleTextStyle" parent="Base.ThemeOverlay.AppCompat.ActionBar">
         <item name="android:textColor">@color/text_dark</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="Oppia.CAB.ActionMode" parent="@style/Widget.AppCompat.ActionMode">
@@ -141,6 +165,7 @@
         <item name="colorAccent">@color/highlight_secondary</item> <!-- Used for the buttons -->
         <item name="android:background">@android:color/transparent</item>
         <item name="android:windowTitleStyle">@style/Oppia.AlertDialogStyle.TitleTextStyle</item>
+        <item name="android:textAppearanceButton">@style/TextAppearanceButtonBorderless</item>
     </style>
 
     <style name="Oppia.AlertDialogStyle.TitleTextStyle" parent="Theme.AppCompat.Light.Dialog">
@@ -154,6 +179,8 @@
         <item name="tabIndicatorHeight">5dp</item>
         <item name="tabPaddingStart">6dp</item>
         <item name="tabPaddingEnd">6dp</item>
+        <item name="tabBackground">@color/tab_bg_color</item>
+        <item name="tabSelectedTextColor">@color/tab_selected_text_color</item>
         <item name="tabTextAppearance">@style/Oppia.ToolbarTheme.AppTabTextAppearance</item>
     </style>
 
@@ -161,9 +188,10 @@
         <item name="android:textAppearance">@android:style/TextAppearance.Medium</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/text_light</item>
+        <item name="android:textColor">@color/tab_text_color</item>
         <item name="android:ellipsize">end</item>
         <item name="android:maxLines">2</item>
+        <item name="fontPath">fonts/montserrat.ttf</item>
     </style>
 
 </resources>

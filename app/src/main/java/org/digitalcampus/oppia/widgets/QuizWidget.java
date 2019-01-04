@@ -17,54 +17,10 @@
 
 package org.digitalcampus.oppia.widgets;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.intrahealth.zambia.oppia.R;
-import org.digitalcampus.mobile.quiz.InvalidQuizException;
-import org.digitalcampus.mobile.quiz.Quiz;
-import org.digitalcampus.mobile.quiz.model.QuizQuestion;
-import org.digitalcampus.mobile.quiz.model.questiontypes.Description;
-import org.digitalcampus.mobile.quiz.model.questiontypes.DragAndDrop;
-import org.digitalcampus.mobile.quiz.model.questiontypes.Matching;
-import org.digitalcampus.mobile.quiz.model.questiontypes.MultiChoice;
-import org.digitalcampus.mobile.quiz.model.questiontypes.MultiSelect;
-import org.digitalcampus.mobile.quiz.model.questiontypes.Numerical;
-import org.digitalcampus.mobile.quiz.model.questiontypes.ShortAnswer;
-import org.digitalcampus.oppia.activity.CourseActivity;
-import org.digitalcampus.oppia.activity.PrefsActivity;
-import org.digitalcampus.oppia.adapter.QuizFeedbackAdapter;
-import org.digitalcampus.oppia.application.DbHelper;
-import org.digitalcampus.oppia.application.SessionManager;
-import org.digitalcampus.oppia.application.Tracker;
-import org.digitalcampus.oppia.model.Activity;
-import org.digitalcampus.oppia.model.Course;
-import org.digitalcampus.oppia.model.QuizAttempt;
-import org.digitalcampus.oppia.model.QuizFeedback;
-import org.digitalcampus.oppia.model.QuizStats;
-import org.digitalcampus.oppia.utils.resources.ExternalResourceOpener;
-import org.digitalcampus.oppia.utils.storage.FileUtils;
-import org.digitalcampus.oppia.utils.MetaDataUtils;
-import org.digitalcampus.oppia.widgets.quiz.DescriptionWidget;
-import org.digitalcampus.oppia.widgets.quiz.DragAndDropWidget;
-import org.digitalcampus.oppia.widgets.quiz.MatchingWidget;
-import org.digitalcampus.oppia.widgets.quiz.MultiChoiceWidget;
-import org.digitalcampus.oppia.widgets.quiz.MultiSelectWidget;
-import org.digitalcampus.oppia.widgets.quiz.NumericalWidget;
-import org.digitalcampus.oppia.widgets.quiz.QuestionWidget;
-import org.digitalcampus.oppia.widgets.quiz.ShortAnswerWidget;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -84,13 +40,64 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.intrahealth.zambia.oppia.R;
+import org.digitalcampus.mobile.quiz.InvalidQuizException;
+import org.digitalcampus.mobile.quiz.Quiz;
+import org.digitalcampus.mobile.quiz.model.QuizQuestion;
+import org.digitalcampus.mobile.quiz.model.questiontypes.Description;
+import org.digitalcampus.mobile.quiz.model.questiontypes.DragAndDrop;
+import org.digitalcampus.mobile.quiz.model.questiontypes.Matching;
+import org.digitalcampus.mobile.quiz.model.questiontypes.MultiChoice;
+import org.digitalcampus.mobile.quiz.model.questiontypes.MultiSelect;
+import org.digitalcampus.mobile.quiz.model.questiontypes.Numerical;
+import org.digitalcampus.mobile.quiz.model.questiontypes.ShortAnswer;
+import org.digitalcampus.oppia.activity.CourseActivity;
+import org.digitalcampus.oppia.activity.PrefsActivity;
+import org.digitalcampus.oppia.adapter.QuizFeedbackAdapter;
+import org.digitalcampus.oppia.application.DbHelper;
+import org.digitalcampus.oppia.application.SessionManager;
+import org.digitalcampus.oppia.application.Tracker;
+import org.digitalcampus.oppia.gamification.Gamification;
+import org.digitalcampus.oppia.gamification.GamificationEngine;
+import org.digitalcampus.oppia.gamification.GamificationService;
+import org.digitalcampus.oppia.gamification.GamificationServiceDelegate;
+import org.digitalcampus.oppia.model.Activity;
+import org.digitalcampus.oppia.model.Course;
+import org.digitalcampus.oppia.model.GamificationEvent;
+import org.digitalcampus.oppia.model.QuizAttempt;
+import org.digitalcampus.oppia.model.QuizFeedback;
+import org.digitalcampus.oppia.model.QuizStats;
+import org.digitalcampus.oppia.utils.MetaDataUtils;
+import org.digitalcampus.oppia.utils.resources.ExternalResourceOpener;
+import org.digitalcampus.oppia.utils.ui.ProgressBarAnimator;
+import org.digitalcampus.oppia.widgets.quiz.DescriptionWidget;
+import org.digitalcampus.oppia.widgets.quiz.DragAndDropWidget;
+import org.digitalcampus.oppia.widgets.quiz.MatchingWidget;
+import org.digitalcampus.oppia.widgets.quiz.MultiChoiceWidget;
+import org.digitalcampus.oppia.widgets.quiz.MultiSelectWidget;
+import org.digitalcampus.oppia.widgets.quiz.NumericalWidget;
+import org.digitalcampus.oppia.widgets.quiz.QuestionWidget;
+import org.digitalcampus.oppia.widgets.quiz.ShortAnswerWidget;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class QuizWidget extends WidgetFactory {
 
 	public static final String TAG = QuizWidget.class.getSimpleName();
     private static final int QUIZ_AVAILABLE = -1;
+	private static final int PROGRESS_ANIM_DURATION = 600;
 	private Quiz quiz;
 	private QuestionWidget qw;
 	public Button prevBtn;
@@ -102,6 +109,9 @@ public class QuizWidget extends WidgetFactory {
 	private boolean isOnResultsPage = false;
 	private ViewGroup container;
 	private MediaPlayer mp;
+
+	private ProgressBar progressBar;
+	private ProgressBarAnimator barAnim;
 
 	public static QuizWidget newInstance(Activity activity, Course course, boolean isBaseline) {
 		QuizWidget myFragment = new QuizWidget();
@@ -116,7 +126,7 @@ public class QuizWidget extends WidgetFactory {
 	}
 
 	public QuizWidget() {
-
+		// Required empty public constructor
 	}
 
 	@SuppressWarnings("unchecked")
@@ -134,8 +144,8 @@ public class QuizWidget extends WidgetFactory {
 		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 		vv.setLayoutParams(lp);
 		vv.setId(activity.getActId());
-		if ((savedInstanceState != null) && (savedInstanceState.getSerializable("widget_config") != null)){
-			setWidgetConfig((HashMap<String, Object>) savedInstanceState.getSerializable("widget_config"));
+		if ((savedInstanceState != null) && (savedInstanceState.getSerializable(WidgetFactory.WIDGET_CONFIG) != null)){
+			setWidgetConfig((HashMap<String, Object>) savedInstanceState.getSerializable(WidgetFactory.WIDGET_CONFIG));
 		}
 
 		return vv;
@@ -144,19 +154,28 @@ public class QuizWidget extends WidgetFactory {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putSerializable("widget_config", getWidgetConfig());
+		outState.putSerializable(WidgetFactory.WIDGET_CONFIG, getWidgetConfig());
 
 	}
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		prevBtn = (Button) getView().findViewById(R.id.mquiz_prev_btn);
-		nextBtn = (Button) getView().findViewById(R.id.mquiz_next_btn);
-		qText = (TextView) getView().findViewById(R.id.question_text);
-		questionImage = (LinearLayout) getView().findViewById(R.id.question_image);
-		playAudioBtn = (ImageView) getView().findViewById(R.id.playAudioBtn);
+		fetchViews();
         loadQuiz();
+	}
+
+	private void fetchViews(){
+		this.prevBtn = (Button) getView().findViewById(R.id.mquiz_prev_btn);
+		this.nextBtn = (Button) getView().findViewById(R.id.mquiz_next_btn);
+		this.qText = (TextView) getView().findViewById(R.id.question_text);
+		this.questionImage = (LinearLayout) getView().findViewById(R.id.question_image);
+		this.playAudioBtn = (ImageView) getView().findViewById(R.id.playAudioBtn);
+		this.progressBar = (ProgressBar) getView().findViewById(R.id.progress_quiz);
+		this.barAnim = new ProgressBarAnimator(progressBar);
+		this.barAnim.setAnimDuration(PROGRESS_ANIM_DURATION);
+		this.questionImage.setVisibility(View.GONE);
+		this.playAudioBtn.setVisibility(View.GONE);
 	}
 	
 	@Override
@@ -182,9 +201,9 @@ public class QuizWidget extends WidgetFactory {
             this.showQuestion();
         }
         else{
-            View container = getView();
-            if (container != null){
-                ViewGroup vg = (ViewGroup) container.findViewById(activity.getActId());
+            View localContainer = getView();
+            if (localContainer != null){
+                ViewGroup vg = (ViewGroup) localContainer.findViewById(activity.getActId());
                 if (vg!=null){
                     vg.removeAllViews();
                     vg.addView(View.inflate(getView().getContext(), R.layout.widget_quiz_unavailable, null));
@@ -218,7 +237,7 @@ public class QuizWidget extends WidgetFactory {
             if (db == null) db = DbHelper.getInstance(getActivity());
             long userId = db.getUserId(SessionManager.getUsername(getActivity()));
 
-            if( db.isPreviousSectionActivitiesCompleted(course, activity, userId) )
+            if( db.isPreviousSectionActivitiesCompleted(activity, userId) )
                 return QUIZ_AVAILABLE;
             else
                 return R.string.widget_quiz_unavailable_section;
@@ -227,7 +246,7 @@ public class QuizWidget extends WidgetFactory {
             // check to see if all previous course activities have been completed
             if (db == null) db = DbHelper.getInstance(getActivity());
             long userId = db.getUserId(SessionManager.getUsername(getActivity()));
-            if (db.isPreviousCourseActivitiesCompleted(course, activity, userId))
+            if (db.isPreviousCourseActivitiesCompleted(activity, userId))
                 return QUIZ_AVAILABLE;
             else
                 return R.string.widget_quiz_unavailable_course;
@@ -256,14 +275,13 @@ public class QuizWidget extends WidgetFactory {
 			questionImage.setVisibility(View.GONE);
 		} else {
 			String fileUrl = course.getLocation() + q.getProp("image");
-			// File file = new File(fileUrl);
 			Bitmap myBitmap = BitmapFactory.decodeFile(fileUrl);
 			File file = new File(fileUrl);
 			ImageView iv = (ImageView) getView().findViewById(R.id.question_image_image);
 			iv.setImageBitmap(myBitmap);
 			iv.setTag(file);
 			if (q.getProp("media") == null){
-				OnImageClickListener oicl = new OnImageClickListener(super.getActivity(), "image/*");
+				OnImageClickListener oicl = new OnImageClickListener(super.getActivity());
 				iv.setOnClickListener(oicl);
 				TextView tv = (TextView) getView().findViewById(R.id.question_image_caption);
 				tv.setText(R.string.widget_quiz_image_caption);
@@ -289,7 +307,7 @@ public class QuizWidget extends WidgetFactory {
 		} else if (q instanceof Numerical) {
 			qw = new NumericalWidget(super.getActivity(), getView(), container);
 		} else if (q instanceof Description) {
-			qw = new DescriptionWidget(super.getActivity(), getView(), container);
+			qw = new DescriptionWidget(getView());
 		} else if (q instanceof DragAndDrop) {
 			qw = new DragAndDropWidget(super.getActivity(), getView(), container, q, course.getLocation());
 		}	else {
@@ -306,15 +324,15 @@ public class QuizWidget extends WidgetFactory {
 		Matcher m = p.matcher(questionText);
 		if (m.find()){
 			final String mp3filename = m.group();
+			questionText = questionText.replace(mp3filename, "");
 			File file = new File(course.getLocation() + "resources/" + mp3filename);
 			if (!file.exists()){
-
+				playAudioBtn.setVisibility(View.GONE);
+				return questionText;
 			}
-			Log.d(TAG, file.exists()? "siooo" : "noooo" );
 			final Uri mp3Uri = Uri.fromFile(file);
-
 			Log.d(TAG, mp3Uri.getPath());
-			questionText = questionText.replace(mp3filename, "");
+
 			playAudioBtn.setVisibility(View.VISIBLE);
 			playAudioBtn.setOnClickListener(new OnClickListener() {
 				@Override
@@ -324,10 +342,8 @@ public class QuizWidget extends WidgetFactory {
 						mp.release();
 						mp = null;
 					}
-
 					mp = MediaPlayer.create(getContext(), mp3Uri);
 					mp.start();
-
 				}
 			});
 		}
@@ -401,22 +417,25 @@ public class QuizWidget extends WidgetFactory {
 
 	private void setProgress() {
 		TextView progress = (TextView) getView().findViewById(R.id.quiz_progress);
+
+		int current = progressBar.getProgress();
+		progressBar.setMax(quiz.getTotalNoQuestions());
+		barAnim.animate(current, quiz.getCurrentQuestionNo());
 		try {
 			if (quiz.getCurrentQuestion().responseExpected()) {
-				progress.setText(super.getActivity().getString(R.string.widget_quiz_progress, quiz.getCurrentQuestionNo(), quiz.getTotalNoQuestions()));
+				progress.setText(quiz.getCurrentQuestionNo() + "/" + quiz.getTotalNoQuestions());
 			} else {
 				progress.setText("");
 			}
 		} catch (InvalidQuizException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	private boolean saveAnswer() {
 		try {
 			List<String> answers = qw.getQuestionResponses(quiz.getCurrentQuestion().getResponseOptions());
-			if (answers != null) {
+			if ( (answers != null) && (answers.size() > 0)) {
 				quiz.getCurrentQuestion().setUserResponses(answers);
 				return true;
 			}
@@ -466,30 +485,12 @@ public class QuizWidget extends WidgetFactory {
 		// log the activity as complete
 		isOnResultsPage = true;
 		quiz.mark(prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage()));
-		// save results ready to send back to the quiz server
-		String data = quiz.getResultObject().toString();
-		Log.d(TAG,data);
-		
-		DbHelper db = DbHelper.getInstance(super.getActivity());
-		long userId = db.getUserId(SessionManager.getUsername(getActivity()));
-		
-		QuizAttempt qa = new QuizAttempt();
-		qa.setCourseId(course.getCourseId());
-		qa.setUserId(userId);
-		qa.setData(data);
 
-		qa.setActivityDigest(activity.getDigest());
-		qa.setScore(quiz.getUserscore());
-		qa.setMaxscore(quiz.getMaxscore());
-		qa.setPassed(this.getActivityCompleted());
-		qa.setSent(false);
-		db.insertQuizAttempt(qa);
-		
 		//Check if quiz results layout is already loaded
         View quizResultsLayout = getView()==null ? null : getView().findViewById(R.id.widget_quiz_results);
         if (quizResultsLayout == null){
             // load new layout
-            View C = getView().findViewById(R.id.quiz_progress);
+            View C = getView().findViewById(R.id.progress_container);
             ViewGroup parent = (ViewGroup) C.getParent();
             int index = parent.indexOfChild(C);
             parent.removeView(C);
@@ -504,9 +505,7 @@ public class QuizWidget extends WidgetFactory {
 			TextView baselineExtro = (TextView) getView().findViewById(R.id.quiz_results_baseline);
 			baselineExtro.setVisibility(View.VISIBLE);
 			baselineExtro.setText(super.getActivity().getString(R.string.widget_quiz_baseline_completed));
-		} 
-		
-		// TODO add TextView here to give overall feedback if it's in the quiz
+		}
 		
 		// Show the detail of which questions were right/wrong
 		if (quiz.getShowFeedback() == Quiz.SHOW_FEEDBACK_ALWAYS || quiz.getShowFeedback() == Quiz.SHOW_FEEDBACK_ATEND){
@@ -564,6 +563,7 @@ public class QuizWidget extends WidgetFactory {
 	}
 
 	private void restart() {
+		this.saveTracker();
 		this.setStartTime(System.currentTimeMillis() / 1000);
 		
 		this.quiz = new Quiz();
@@ -577,13 +577,9 @@ public class QuizWidget extends WidgetFactory {
 	    parent.removeView(C);
 	    C = super.getActivity().getLayoutInflater().inflate(R.layout.widget_quiz, parent, false);
 	    parent.addView(C, index);
-	    
-	    this.prevBtn = (Button) getView().findViewById(R.id.mquiz_prev_btn);
-	    this.nextBtn = (Button) getView().findViewById(R.id.mquiz_next_btn);
-	    this.qText = (TextView) getView().findViewById(R.id.question_text);
-	    this.questionImage = (LinearLayout) getView().findViewById(R.id.question_image);
-	    this.questionImage.setVisibility(View.GONE);
-		this.showQuestion();
+
+		fetchViews();
+		showQuestion();
 	}
 
 	@Override
@@ -602,42 +598,22 @@ public class QuizWidget extends WidgetFactory {
 	@Override
 	public void saveTracker() {
 		long timetaken = this.getSpentTime();
-		Tracker t = new Tracker(super.getActivity());
-		JSONObject obj = new JSONObject();
-		if(!isOnResultsPage){
+		if(activity == null || !isOnResultsPage){
 			return;
 		}
-		// add in extra meta-data
-		try {
-			MetaDataUtils mdu = new MetaDataUtils(super.getActivity());
-			obj.put("timetaken", timetaken);
-			obj = mdu.getMetaData(obj);
-			String lang = prefs.getString(PrefsActivity.PREF_LANGUAGE, Locale.getDefault().getLanguage());
-			obj.put("lang", lang);
-			obj.put("quiz_id", quiz.getID());
-			obj.put("instance_id", quiz.getInstanceID());
-			obj.put("score", this.getPercent());
-			// if it's a baseline activity then assume completed
-			if (this.isBaseline) {
-				t.saveTracker(course.getCourseId(), activity.getDigest(), obj, true);
-			} else {
-				t.saveTracker(course.getCourseId(), activity.getDigest(), obj, this.getActivityCompleted());
-			}
-		} catch (JSONException e) {
-			// Do nothing
-		} catch (NullPointerException npe){
-			//do nothing
-		}
-		
+
+        Log.d(TAG," saving quiz tracker");
+		new GamificationServiceDelegate(getActivity())
+			.createActivityIntent(course, activity, getActivityCompleted(), isBaseline)
+			.registerQuizAttemptEvent(timetaken, quiz, this.getPercent());
 	}
 
 	@Override
 	public HashMap<String, Object> getWidgetConfig() {
 		HashMap<String, Object> config = new HashMap<String, Object>();
-		// this.saveAnswer();
 		config.put("quiz", this.quiz);
-		config.put("Activity_StartTime", this.getStartTime());
-		config.put("OnResultsPage", this.isOnResultsPage);
+		config.put(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME, this.getStartTime());
+		config.put(WidgetFactory.PROPERTY_ON_RESULTS_PAGE, this.isOnResultsPage);
 		return config;
 	}
 
@@ -646,11 +622,11 @@ public class QuizWidget extends WidgetFactory {
 		if (config.containsKey("quiz")) {
 			this.quiz = (Quiz) config.get("quiz");
 		}
-		if (config.containsKey("Activity_StartTime")) {
-			this.setStartTime((Long) config.get("Activity_StartTime"));
+		if (config.containsKey(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME)) {
+			this.setStartTime((Long) config.get(WidgetFactory.PROPERTY_ACTIVITY_STARTTIME));
 		}
-		if (config.containsKey("OnResultsPage")) {
-			this.isOnResultsPage = (Boolean) config.get("OnResultsPage");
+		if (config.containsKey(WidgetFactory.PROPERTY_ON_RESULTS_PAGE)) {
+			this.isOnResultsPage = (Boolean) config.get(WidgetFactory.PROPERTY_ON_RESULTS_PAGE);
 		}
 	}
 
@@ -687,7 +663,7 @@ public class QuizWidget extends WidgetFactory {
 		private Context ctx;
 		private String type;
 		
-		public OnImageClickListener(Context ctx, String type){
+		public OnImageClickListener(Context ctx){
 			this.ctx = ctx;
 			this.type = type;
 		}
@@ -698,10 +674,9 @@ public class QuizWidget extends WidgetFactory {
 			if(!file.exists()){
 				Toast.makeText(this.ctx,this.ctx.getString(R.string.error_resource_not_found,file.getName()), Toast.LENGTH_LONG).show();
 				return;
-			} 
-			Uri targetUri = Uri.fromFile(file);
+			}
 			// check there is actually an app installed to open this filetype
-			Intent intent = ExternalResourceOpener.getIntentToOpenResource(ctx, targetUri, type);
+			Intent intent = ExternalResourceOpener.getIntentToOpenResource(ctx, file);
 			if(intent != null){
 				this.ctx.startActivity(intent);
 			} else {
